@@ -1,8 +1,10 @@
-# Modryn Studio — Boilerplate
+![Lawn Agent](public/brand/banner.png)
 
-Next.js starter for every Modryn Studio product. Pre-wired for production from day one.
+# Lawn Agent
 
-→ [modrynstudio.com](https://modrynstudio.com)
+Your yard, figured out. Stop researching — get a system that tells you exactly what your lawn needs.
+
+→ [lawnagent.app](https://lawnagent.app)
 
 ---
 
