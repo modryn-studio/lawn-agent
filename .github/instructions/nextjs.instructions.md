@@ -1,9 +1,10 @@
 ---
-name: "Next.js 15 Conventions"
-description: "App Router patterns, Server Components, metadata, and file conventions for Next.js 15"
-applyTo: "**/*.ts,**/*.tsx,**/app/**"
+name: 'Next.js 16 Conventions'
+description: 'App Router patterns, Server Components, metadata, and file conventions for Next.js 16'
+applyTo: '**/*.ts,**/*.tsx,**/app/**'
 ---
-# Next.js 15 App Router Conventions
+
+# Next.js 16 App Router Conventions
 
 ## Components
 - Server Components by default — only add `'use client'` when you need interactivity, hooks, or browser APIs
@@ -34,8 +35,8 @@ applyTo: "**/*.ts,**/*.tsx,**/app/**"
   ```
 
 ## Data & Rendering
-- Prefer Server Actions over API routes for mutations
-- Use `fetch()` with caching in Server Components for data loading
+- Use API routes (`app/api/**/route.ts`) for all data fetching and mutations — this project does not use Server Actions
+- Use client-side `fetch()` in components for data loading
 - Static generation by default — only use `force-dynamic` when data changes per-request
 
 ## Images & Assets
@@ -43,18 +44,13 @@ applyTo: "**/*.ts,**/*.tsx,**/app/**"
 - Specify `width` and `height` or use `fill` prop
 - Use `priority` on above-the-fold images
 
-## Required Public Files
-- `public/robots.txt` — allow all crawlers, reference the sitemap:
-  ```
-  User-agent: *
-  Allow: /
-  Sitemap: https://yourdomain.com/sitemap.xml
-  ```
-- `public/manifest.json` — basic PWA manifest with `name`, `description`, `start_url`, `theme_color`, and `icons`.
+## Required App Files
+- `src/app/robots.ts` — export a `robots()` function (App Router convention, not a static `public/robots.txt`)
+- `src/app/manifest.ts` — export a `manifest()` function for PWA metadata (not a static `public/manifest.json`)
 - `public/og-image.png` — 1200×630px OG image (separate from any README banner).
-- `src/app/sitemap.ts` — export a `sitemap()` function listing all public routes with `changeFrequency` and `priority`. Next.js serves this as `/sitemap.xml` automatically.
-- Link `manifest.json` in root `layout.tsx` via the `manifest` metadata field.
+- Link manifest via the `manifest` metadata field in root `layout.tsx`.
 
 ## Styling
 - Tailwind CSS utility classes — no CSS modules or styled-components
 - Use `cn()` helper from `@/lib/cn` (clsx + tailwind-merge) for conditional classes
+
