@@ -1,13 +1,11 @@
 import type { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/next';
+import { Playfair_Display, Inter } from 'next/font/google';
 import { site } from '@/config/site';
 import './globals.css';
 
-// TODO /setup: import project fonts from next/font/google based on brand.md Typography section
-// Example:
-//   import { Inter } from 'next/font/google';
-//   const inter = Inter({ subsets: ['latin'], variable: '--font-heading' });
-// Then add the variable className to <html> and 'font-heading' to <body>
+const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair-display' });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
   title: site.ogTitle,
@@ -27,10 +25,9 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // TODO /setup: add font variable className(s) to <html> once fonts are configured above
   return (
-    <html lang="en">
-      <body className="antialiased">
+    <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
+      <body className="font-heading antialiased">
         {children}
         <Analytics />
       </body>

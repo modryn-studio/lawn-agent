@@ -1,7 +1,8 @@
-﻿import nextConfig from 'eslint-config-next';
+import { fixupConfigRules } from '@eslint/compat';
+import nextConfig from 'eslint-config-next';
 
 export default [
-  ...nextConfig,
+  ...fixupConfigRules(nextConfig),
   {
     rules: {
       // Disabled: false positive in Next.js SSR context. localStorage and URL params

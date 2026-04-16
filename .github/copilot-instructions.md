@@ -1,48 +1,85 @@
-# [Project Name] — Copilot Context
+# Lawn Agent — Copilot Context
 
 ## Who I Am
-<!-- TODO: describe yourself, your product, and your target user -->
+
+Luke Hanner builds micro-niche tools with AI. Lawn Agent is a persistent property brain for homeowners who want a great yard but don't know where to start. It monitors conditions, generates proposals, and gets the right product in the user's cart — they approve or pass. Target user: someone who looked at their patchy lawn one Saturday and decided they wanted it to look amazing.
 
 ## Deployment
+
 <!-- Filled in by /setup from context.md.
      Read this before touching next.config.ts, BASE_PATH, site.ts, or any hardcoded URL.
      If mode is modryn-app:         basePath must stay set in next.config.ts.
      If mode is standalone-*:       basePath must be absent from next.config.ts. -->
 
-mode: <!-- modryn-app | standalone-subdomain | standalone-domain -->
-url:  <!-- canonical URL -->
-basePath: <!-- /tools/your-slug   (empty for standalone modes) -->
+mode: standalone-domain
+url: https://lawnagent.app
+basePath:
 
 ## Stack
+
 - Next.js 16 (App Router) with TypeScript
 - Tailwind CSS for styling
 - Vercel for deployment
 - Vercel Analytics `<Analytics />` in `layout.tsx` — zero-config pageview tracking, no env vars needed
 - `@/lib/analytics.ts` — no-op stub with named methods; wire in a real provider here if needed
-<!-- TODO: add project-specific services (e.g. Resend, Stripe, Prisma, Supabase) -->
+- `zod` — request body validation in API routes
+- `stripe` — installed but not wired yet (subscription billing planned)
+- `resend` — transactional email
+- `nodemailer` — email delivery
+- **Planned (not yet installed):** `@neondatabase/serverless` (Neon Postgres), `@ai-sdk/anthropic` + `ai` (proposal generation via claude-sonnet-4-5), weather/soil API (TBD)
 
 ## Project Structure
+
 ```
 /app                    → Next.js App Router pages
 /components             → Reusable UI components
 /lib                    → Utilities, helpers, data fetching
-<!-- TODO: add any project-specific directories -->
+/docs                   → Schema design, architecture notes, team deliverables
+/migrations             → Neon SQL migration files (schema source of truth)
 ```
 
 ## Route Map
-<!-- TODO: list every route and what it does -->
-- `/`                → (home)
-- `/privacy`         → Privacy policy
-- `/terms`           → Terms of service
+
+- `/` → Landing page. Hero, value proposition, email capture for early access.
+- `/onboarding` → Three screens: address input → first proposal → profile reveal with assumption corrections.
+- `/dashboard` → Proposal feed, active recommendations, yard summary.
+- `/profile` → Yard details, assumption corrections, treatment log, confidence labels.
+- `/proposal/[id]` → Individual proposal detail, approve/pass, commerce deep link, completion confirmation.
+- `/api/proposals` → Proposal generation. Pulls yard context, calls Anthropic, returns structured proposal.
+- `/api/yard` → Yard properties CRUD. Versioned rows, source + confidence tracking.
+- `/api/interactions` → Log user events: confirm, correct, log, approve, pass, complete.
+- `/privacy` → Privacy policy
+- `/terms` → Terms of service
 
 ## Brand & Voice
-<!-- TODO: populate from brand.md
-  Voice rules: how the product sounds (tone, banned words, sentence style)
-  Target User: 2–3 sentence portrait of who is using this and why
-  Visual Rules: colors (all 5 with roles), fonts, motion, things to avoid
-  Emotional Arc: what the user feels at each stage — land, use, convert, share
-  Copy Reference: real examples of hero, CTA, error, waiting state copy
--->
+
+**Voice:** Short sentences. Direct. No expertise assumed. Confident without arrogance — the product knows things, states them plainly, invites correction without apologizing. Honest about what doesn't exist yet. Never use: "powerful", "seamless", "revolutionary", "unlock", "supercharge", "AI-powered", "next-level", "smart", "intelligent".
+
+**Target User:** Someone who looked at their patchy lawn one Saturday and decided they wanted it to look amazing — and had no idea where to start. They've Googled "when to fertilize my lawn" more than once. They don't want to become a lawn expert. They want a result and a system that makes it almost automatic.
+
+**Visual Rules:**
+
+- Colors: Accent `#4A7C59` (field green), Secondary `#C4A35A` (dry grass gold), Background `#FAF8F4` (warm off-white), Text `#1A1A1A` (near-black), Muted `#9A9590` (warm gray)
+- Fonts: Playfair Display (headings) + Inter (body/UI)
+- Motion: State change only. Never for delight. No animations on load.
+- Avoid: Gradients, pill shapes, decorative shadows, Kelly green (#00A651 — Scotts), corporate blue-green (TruGreen), sage-and-sand (Sunday), leaf/grass/house icons.
+- Light mode only. No dark mode toggle.
+
+**Emotional Arc:**
+
+- Land: Recognized. "This is the thing I've been looking for."
+- Read: Relieved. "I don't have to figure this out myself."
+- Scroll: Convinced. "This actually works the way I want it to."
+- Convert: Ready. "Obvious decision."
+- Peak never reaches enthusiasm. Clarity and confidence, not excitement.
+
+**Copy Reference:**
+
+- Hero: "Your yard. Figured out."
+- Sub-copy: "Stop researching. Stop guessing. Stop starting over every spring."
+- CTA: "I want a better yard"
+- Error: "Something went wrong. Try again."
+- Yard vs. lawn distinction: "Yard" = whole property (emotional). "Lawn" = grass specifically (actionable). Do not collapse.
 
 ## README Standard
 
@@ -63,6 +100,7 @@ Next.js · TypeScript · Tailwind CSS · Vercel
 ```
 
 Rules:
+
 - **Banner image** — always first. Path is `public/brand/banner.png`.
 - **H1 title** — product name only, no subtitle.
 - **Tagline** — one sentence. What the user gets. No buzzwords ("powerful", "seamless", "AI-powered").
@@ -72,6 +110,7 @@ Rules:
 - **Nothing else.** No install instructions, no contributing section, no architecture diagrams, no screenshots beyond the banner. Real docs go in `/docs` or on the live site.
 
 When adding a badge row (optional, for open source tools/libraries only):
+
 - Place it between the H1 and the tagline
 - Use shields.io format: `[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)`
 - Keep it to 3 badges max: typically license + CI status + live site
@@ -83,27 +122,27 @@ This project uses Tailwind CSS v4. The rules are different from v3 — follow th
 
 **Design tokens live in `@theme`, not `:root`:**
 
-<!-- TODO: update the @theme example below with the actual brand colors from globals.css -->
 ```css
 /* ✅ correct — generates text-accent, bg-surface, border-border, etc. */
 @theme {
-  --color-accent: #F97415;    /* TODO: replace with brand accent color */
-  --color-secondary: #FFDD00; /* TODO: replace with brand secondary color */
-  --color-bg: #050505;        /* TODO: replace with brand background color */
-  --color-text: #e5e5e5;      /* TODO: replace with brand text color */
-  --color-muted: #666666;     /* TODO: replace with brand muted color */
-  --color-surface: #111111;   /* TODO: replace with brand surface color */
-  --color-border: #222222;    /* TODO: replace with brand border color */
-  --font-heading: var(--font-sans); /* TODO: replace with brand heading font */
+  --color-accent: #4a7c59; /* field green — primary actions, links, confirmation */
+  --color-secondary: #c4a35a; /* dry grass gold — supporting moments, seasonal cues */
+  --color-bg: #faf8f4; /* warm off-white — base background */
+  --color-text: #1a1a1a; /* near-black — all primary copy */
+  --color-muted: #9a9590; /* warm gray — labels, metadata, secondary info */
+  --color-surface: #f0ede8; /* warm panel — card/panel backgrounds */
+  --color-border: #e0dcd6; /* warm border — subtle borders */
+  --font-heading: var(--font-playfair-display); /* Playfair Display */
 }
 
 /* ❌ wrong — :root creates CSS variables but NO utility classes */
 :root {
-  --color-accent: #F97415;
+  --color-accent: #4a7c59;
 }
 ```
 
 **Use `(--color-*)` shorthand in class strings — never `[var(--color-*)]`:**
+
 ```tsx
 // ✅ correct — TW v4 native shorthand
 <div className="border-(--color-border) bg-(--color-surface) text-(--color-muted)" />
@@ -113,6 +152,7 @@ This project uses Tailwind CSS v4. The rules are different from v3 — follow th
 ```
 
 If tokens are defined in `@theme`, you can also use the short utility names directly:
+
 ```tsx
 // ✅ also correct when @theme is properly set up
 <div className="border-border bg-surface text-muted text-accent" />
@@ -131,9 +171,13 @@ const log = createRouteLogger('my-route');
 export async function POST(req: Request): Promise<Response> {
   const ctx = log.begin();
   try {
-    log.info(ctx.reqId, 'Request received', { /* key fields */ });
+    log.info(ctx.reqId, 'Request received', {
+      /* key fields */
+    });
     // ... handler body ...
-    return log.end(ctx, Response.json(result), { /* key result fields */ });
+    return log.end(ctx, Response.json(result), {
+      /* key result fields */
+    });
   } catch (error) {
     log.err(ctx, error);
     return Response.json({ error: 'Internal error' }, { status: 500 });
@@ -163,12 +207,15 @@ analytics.track('event_name', { prop: value });
 ## Dev Server
 
 Start with `Ctrl+Shift+B` (default build task). This runs:
+
 ```
 npm run dev -- --port 3000 2>&1 | Tee-Object -FilePath dev.log
 ```
+
 Tell Copilot **"check logs"** at any point — it reads `dev.log` and flags errors or slow requests.
 
 ## Code Style
+
 - Write as a senior engineer: minimal surface area, obvious naming, no abstractions before they're needed
 - Comments explain WHY, not what
 - One file = one responsibility
@@ -177,6 +224,7 @@ Tell Copilot **"check logs"** at any point — it reads `dev.log` and flags erro
 - Leave TODO comments for post-launch polish items
 
 ## Core Rules
+
 - Every page earns its place — no pages for businesses not yet running
 - Ship fast, stay honest — empty is better than fake
 - Ugly is acceptable, broken is not — polish the core action ruthlessly

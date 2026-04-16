@@ -1,109 +1,104 @@
 # Project Context
 
 ## Core Framework
-<!-- The three decisions that justify building this. Fill these in before writing a single line of code.
-     If you can't fill these in, you don't have a product yet — you have a hypothesis.
 
-     1. Market you care about:
-        A market you already understand from experience, frustration, or obsession.
+Market: Homeowners who care about their lawn and yard but lack the knowledge and system to act on it consistently.
 
-     2. What people already pay for in this market:
-        A product (or service) with proven demand. Name it. Note the price. Note the top complaint.
-        You are not guessing — you looked this up. Cite a source.
+Reference product (what people pay for): Yard Mastery app — 100K+ users, free, personalized lawn plans by zip code and grass type. Top complaint: feels like a product marketing tool, not a trusted advisor. Users know they're being sold to.
 
-     3. Your differentiation (your signature):
-        The one thing you do differently. This is the only creative decision in the framework.
-        "Same job, for a different person" counts. "Same thing, without the worst thing" counts.
-        Avoid: "better", "faster", "cheaper" without a specific mechanism.
--->
+Your angle: Agentic. The product monitors conditions, generates proposals, and gets the right product to the user's cart — they approve or pass. It doesn't wait to be asked. Every competitor waits to be asked.
 
-Market:
-Reference product (what people pay for):
-Your angle:
+---
 
 ## Product
-<!-- What is this product? One or two sentences. -->
+
+Lawn Agent is a persistent property brain for homeowners who do it themselves. It knows your yard, monitors weather and soil conditions, and tells you exactly what your lawn needs — then gets the right product in your cart with one tap. It gets smarter every season.
+
+---
 
 ## Target User
-<!-- Who is it for? Be specific — describe one real person, not a demographic. -->
+
+Someone who looked at their patchy lawn one Saturday and decided they wanted it to look amazing — and had no idea where to start. Not a lawn enthusiast. Not a professional. Someone who wants the result without becoming an expert. They've Googled "when to fertilize my lawn" more than once. They're done starting from scratch every spring.
+
+---
 
 ## Deployment
-<!-- How is this project served? Pick one mode and fill in the three fields below.
 
-     MODE: modryn-app
-     Served at modrynstudio.com/tools/[slug] via rewrites in modryn-studio-v2.
-     This repo deploys to Vercel (.vercel.app URL). modryn-studio-v2 proxies
-     modrynstudio.com/tools/[slug]/* to it. Google sees one domain — good for SEO.
-     → basePath: '/tools/your-slug' in next.config.ts
-     → BASE_PATH = '/tools/your-slug' in src/lib/base-path.ts
+mode: standalone-domain
 
-     MODE: standalone-subdomain
-     Served at subdomain.domain.com — its own Vercel deployment + custom subdomain DNS.
-     → Remove basePath from next.config.ts entirely
-     → BASE_PATH = '' in src/lib/base-path.ts
+modrynstudio.com has a verified **Domain property** in Google Search Console. Lawn Agent is a standalone domain — submit lawnagent.app sitemap directly to GSC as a separate URL Prefix property.
 
-     MODE: standalone-domain
-     Served at its own root domain (e.g. specifythat.com).
-     → Remove basePath from next.config.ts entirely
-     → BASE_PATH = '' in src/lib/base-path.ts
--->
+url: https://lawnagent.app
+basePath:
 
-mode: <!-- modryn-app | standalone-subdomain | standalone-domain -->
-
-modrynstudio.com has a verified **Domain property** in Google Search Console. All tools under that domain are covered automatically. Never walk through domain verification steps  just submit the tool sitemap to the existing property.
-url:  <!-- https://modrynstudio.com/tools/your-slug -->
-basePath: <!-- /tools/your-slug   (leave empty for standalone modes) -->
+---
 
 ## Minimum Money Loop
-<!-- The minimum sequence that results in money changing hands.
-     Wire every step end-to-end before polishing any individual step.
-     One real order through the whole system is the only milestone that matters in Phase 4.
 
-     Fill in your funnel as a one-line arrow chain:
-     [Entry point] → [Core action] → [Payment] → [Fulfillment trigger] → [Delivery] → [Shareable output]
+Landing page → email capture (early access) → onboarding (address input) → first proposal generated → user approves → deep link to pre-filled Amazon/Home Depot cart → user completes purchase outside app → user confirms completion in app → proposal marked done → app logs treatment history → next proposal gets smarter.
 
-     Example:
-     Landing page → /create intake → Stripe checkout ($9.99) → Admin notified → Admin fulfills → Resend email → /result/[id] shareable page
-
-     Rule: do not polish any one piece until this loop has run once with a real order.
--->
+---
 
 ## Stack Additions
-<!-- Any services beyond the boilerplate defaults (Next.js, Tailwind, Vercel, GA4)?
-     e.g. Resend for email, Stripe for payments, Prisma + Supabase for database -->
+
+- `@neondatabase/serverless` — Neon serverless Postgres (yard_properties, property_interactions, proposals tables per Michelle's schema)
+- `@ai-sdk/anthropic` + `ai` — proposal generation via claude-sonnet-4-5 streaming
+- `zod` — request body validation in API routes
+- Weather/soil temp API — TBD (Open-Meteo or similar, free tier)
+- USDA Plant Hardiness Zone API — zip code to hardiness zone lookup
+
+---
 
 ## Project Structure Additions
-<!-- Any directories beyond /app, /components, /lib?
-     e.g. /content/posts/*.mdx, /content/tools/*.json -->
+
+- `/docs` — schema design, architecture notes, Michelle's technical deliverables
+- `/migrations` — Neon SQL migration files (schema source of truth)
+
+---
 
 ## Route Map
-<!-- List every route and what it does.
-     /privacy and /terms will be added automatically.
-     Example: - `/dashboard` → Main user dashboard after login -->
-- `/` →
+
+- `/` — Landing page. Hero, value proposition, email capture for early access. No product yet — promise only.
+- `/onboarding` — Three screens: address input → first proposal → profile reveal with assumption labels. Address → proposal → correction. Never the reverse.
+- `/dashboard` — Main view after onboarding. Proposal feed, active recommendations, yard summary.
+- `/profile` — Yard details. Assumption corrections, treatment log, confidence labels per attribute.
+- `/proposal/[id]` — Individual proposal. Full detail, approve/pass, deep link to pre-filled cart, completion confirmation.
+- `/privacy` — Privacy policy.
+- `/terms` — Terms of service.
+- `/api/proposals` — Proposal generation endpoint. Pulls confidence-weighted yard context, calls Anthropic, returns structured proposal.
+- `/api/yard` — Yard properties CRUD. Versioned rows, source + confidence tracking per Michelle's schema.
+- `/api/interactions` — Log user events: confirm, correct, log, approve, pass, complete.
+
+---
 
 ## Monetization
-<!-- How does this product make money? Pick one:
-     - `email-only`        → Free tool, capture emails for future launches (default)
-     - `one-time-payment`  → Pay once, use forever (Stripe)
-     - `none`              → No email capture, no payment — pure SEO/traffic play
 
-     If `one-time-payment`:
-       Fast path (default): create a Payment Link in Stripe Dashboard, pass URL to <PayGate>.
-       No server code, no env vars, no npm package.
-       Upgrade path: /api/checkout route for dynamic pricing (needs `stripe` npm + env vars). -->
+Subscription — $10–15/month. Affiliate margin on commerce deep links is upside, not the business model. Do not build around affiliate rates we don't control.
+
+Email capture on landing page before subscription is live. Early access list. No free tier — paid users actually use the product.
+
+LTD launch planned via private offer then AppSumo. $59–$100 one-time. LTD funds content and buys time. MRR is the destination.
+
+---
 
 ## Target Subreddits
-<!-- Subreddits where the target user's pain lives.
-     Used by /social prompt for launch-day distribution.
-     List 2–4. Don't include r/SideProject (always included as founder channel).
-     Example: r/webdev, r/freelance -->
+
+- r/lawncare
+- r/homeowners
+- r/DIY
+- r/frugalmalefashion (skip — wrong audience, listed in error)
+
+Correct list:
+- r/lawncare
+- r/homeowners
+- r/DIY
+- r/gardening
+
+---
 
 ## Social Profiles
-<!-- Your accounts — used by /init and /launch to populate site.ts social block and footer links.
-     twitter/devto/shipordie are universal — already filled in.
-     Update GitHub to this project's repo URL. -->
+
 - X/Twitter: https://x.com/lukehanner
-- GitHub: https://github.com/TODO
+- GitHub: https://github.com/modryn-studio/lawn-agent
 - Dev.to: https://dev.to/lukehanner
 - Ship or Die: https://shipordie.club/lukehanner
