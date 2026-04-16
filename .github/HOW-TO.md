@@ -243,14 +243,15 @@ The script auto-detects whether your mark is colored or grayscale and generates 
 
 **What gets generated:**
 
-| File                      | Purpose                                           |
-| ------------------------- | ------------------------------------------------- |
-| `public/icon-light.png`   | Favicon in light mode (via `layout.tsx` metadata) |
-| `public/icon-dark.png`    | Favicon in dark mode (via `layout.tsx` metadata)  |
-| `src/app/favicon.ico`     | Legacy fallback — Next.js file convention         |
-| `src/app/icon.png`        | 1024×1024 — Next.js file convention               |
-| `src/app/apple-icon.png`  | iOS home screen — Next.js file convention         |
-| `public/brand/banner.png` | README header (auto-generated if absent)          |
+| File                      | Purpose                                                                            |
+| ------------------------- | ---------------------------------------------------------------------------------- |
+| `public/favicon.svg`      | Primary favicon — embeds both PNGs, switches via `prefers-color-scheme` in the SVG |
+| `public/icon-light.png`   | PNG fallback for browsers without SVG favicon support                              |
+| `public/icon-dark.png`    | PNG fallback (dark variant)                                                        |
+| `src/app/favicon.ico`     | Safari browser tab + legacy fallback — Next.js file convention                     |
+| `src/app/icon.png`        | 1024×1024 — required for auto-generated webmanifest                                |
+| `src/app/apple-icon.png`  | iOS "Add to Home Screen" — Next.js file convention                                 |
+| `public/brand/banner.png` | README header (auto-generated if absent)                                           |
 
 OG image is generated at build time by `src/app/opengraph-image.tsx` — not a static file.
 
