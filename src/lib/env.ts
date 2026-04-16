@@ -8,6 +8,9 @@ const schema = z.object({
   NEON_AUTH_BASE_URL: z.string().min(1, 'NEON_AUTH_BASE_URL is required'),
   NEON_AUTH_COOKIE_SECRET: z.string().min(32, 'NEON_AUTH_COOKIE_SECRET must be at least 32 chars'),
 
+  // Anthropic — required for proposal generation
+  ANTHROPIC_API_KEY: z.string().min(1, 'ANTHROPIC_API_KEY is required'),
+
   // Optional — boilerplate features, not all active at once
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),

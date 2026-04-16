@@ -10,9 +10,11 @@
     "check-deps": "npx npm-check-updates"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "3.0.69",
     "@neondatabase/auth": "0.2.0-beta.1",
     "@neondatabase/serverless": "1.0.2",
     "@vercel/analytics": "2.0.1",
+    "ai": "6.0.164",
     "babel-plugin-react-compiler": "1.0.0",
     "clsx": "2.1.1",
     "lucide-react": "1.8.0",
