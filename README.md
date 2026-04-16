@@ -1,4 +1,6 @@
-![Lawn Agent](public/brand/wordmark.png)
+![Lawn Agent](public/brand/banner.png)
+
+# Lawn Agent
 
 Your yard, figured out. Stop researching — get a system that tells you exactly what your lawn needs.
 

@@ -59,7 +59,7 @@ basePath:
 
 **Visual Rules:**
 
-- Colors: Accent `#4A7C59` (field green), Secondary `#C4A35A` (dry grass gold), Background `#FAF8F4` (warm off-white), Text `#1A1A1A` (near-black), Muted `#9A9590` (warm gray)
+- Colors: Accent `#4A7C59` (field green), Secondary `#C4A35A` (dry grass gold — use sparingly, tips toward harvest festival at small sizes), Background `#FAF8F4` (warm off-white), Text `#1A1A1A` (near-black), Muted `#9A9590` (warm gray)
 - Fonts: Playfair Display (headings) + Inter (body/UI)
 - Motion: State change only. Never for delight. No animations on load.
 - Avoid: Gradients, pill shapes, decorative shadows, Kelly green (#00A651 — Scotts), corporate blue-green (TruGreen), sage-and-sand (Sunday), leaf/grass/house icons.

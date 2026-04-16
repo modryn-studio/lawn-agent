@@ -26,15 +26,16 @@ Someone who looked at their patchy lawn on a Saturday and decided they wanted it
 
 ## Color System
 
-| Name       | Hex       | Role                                                    |
-|------------|-----------|---------------------------------------------------------|
-| Accent     | `#4A7C59` | Field green. Primary actions, links, confirmation states. Not Kelly green. |
-| Secondary  | `#C4A35A` | Dry grass gold. Supporting moments, seasonal cues.      |
-| Background | `#FAF8F4` | Warm off-white. Never pure white.                       |
-| Text       | `#1A1A1A` | Near-black. All primary copy.                           |
-| Muted      | `#9A9590` | Warm gray. Labels, metadata, secondary information.     |
+| Name       | Hex       | Role                                                                                                                 |
+| ---------- | --------- | -------------------------------------------------------------------------------------------------------------------- |
+| Accent     | `#4A7C59` | Field green. Primary actions, links, confirmation states. Not Kelly green.                                           |
+| Secondary  | `#C4A35A` | Dry grass gold. Supporting moments, seasonal cues. Use sparingly — at small sizes it tips toward "harvest festival". |
+| Background | `#FAF8F4` | Warm off-white. Never pure white.                                                                                    |
+| Text       | `#1A1A1A` | Near-black. All primary copy.                                                                                        |
+| Muted      | `#9A9590` | Warm gray. Labels, metadata, secondary information.                                                                  |
 
 Color rules:
+
 - Scotts owns Kelly green (`#00A651`) — avoid entirely.
 - TruGreen owns corporate blue-green — avoid entirely.
 - Sunday owns sage-and-sand — avoid entirely.
@@ -49,6 +50,7 @@ Color rules:
 **Favicon:** "LA" monogram, `#4A7C59` on `#FAF8F4`. Transparent background on wordmark.
 
 **Future logomark direction (post-launch):**
+
 - Abstract or geometric — not illustrative
 - Rendered in accent `#4A7C59`
 - Transparent background, no container shape

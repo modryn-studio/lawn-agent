@@ -16,7 +16,7 @@ export const site = {
   waitlist: {
     headline: 'Early access',
     subheadline: 'Sign up to be first in line.',
-    success: 'You\u2019re on the list.',
+    success: "You're on the list. We'll be in touch.",
   },
   accent: '#4A7C59',
   bg: '#FAF8F4',
