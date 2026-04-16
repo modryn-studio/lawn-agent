@@ -10,6 +10,7 @@
     "check-deps": "npx npm-check-updates"
   },
   "dependencies": {
+    "@neondatabase/serverless": "1.0.2",
     "@vercel/analytics": "2.0.1",
     "babel-plugin-react-compiler": "1.0.0",
     "clsx": "2.1.1",

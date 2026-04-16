@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
 const schema = z.object({
-  // Add required vars here: z.string().min(1, 'VAR_NAME is required')
+  // Neon Postgres — required for yard_properties, proposals, interactions
+  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 
   // Optional — boilerplate features, not all active at once
   STRIPE_SECRET_KEY: z.string().optional(),

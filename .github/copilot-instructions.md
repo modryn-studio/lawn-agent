@@ -26,7 +26,8 @@ basePath:
 - `stripe` — installed but not wired yet (subscription billing planned)
 - `resend` — transactional email
 - `nodemailer` — email delivery
-- **Planned (not yet installed):** `@neondatabase/serverless` (Neon Postgres), `@ai-sdk/anthropic` + `ai` (proposal generation via claude-sonnet-4-5), weather/soil API (TBD)
+- `@neondatabase/serverless` — Neon serverless Postgres (project: `blue-rain-41930180`, `aws-us-east-1`, Postgres 17)
+- **Planned (not yet installed):** `@ai-sdk/anthropic` + `ai` (proposal generation via claude-sonnet-4-5), weather/soil API (TBD)
 
 ## Project Structure
 
