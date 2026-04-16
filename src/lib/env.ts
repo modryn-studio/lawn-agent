@@ -4,6 +4,10 @@ const schema = z.object({
   // Neon Postgres — required for yard_properties, proposals, interactions
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 
+  // Neon Auth — required for session management
+  NEON_AUTH_BASE_URL: z.string().min(1, 'NEON_AUTH_BASE_URL is required'),
+  NEON_AUTH_COOKIE_SECRET: z.string().min(32, 'NEON_AUTH_COOKIE_SECRET must be at least 32 chars'),
+
   // Optional — boilerplate features, not all active at once
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),
@@ -23,9 +27,7 @@ const schema = z.object({
 const parsed = schema.safeParse(process.env);
 
 if (!parsed.success) {
-  const missing = parsed.error.issues
-    .map((i) => `  ${i.path.join('.')}: ${i.message}`)
-    .join('\n');
+  const missing = parsed.error.issues.map((i) => `  ${i.path.join('.')}: ${i.message}`).join('\n');
   throw new Error(`Missing or invalid environment variables:\n${missing}`);
 }
 

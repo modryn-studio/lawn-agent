@@ -10,6 +10,7 @@
     "check-deps": "npx npm-check-updates"
   },
   "dependencies": {
+    "@neondatabase/auth": "0.2.0-beta.1",
     "@neondatabase/serverless": "1.0.2",
     "@vercel/analytics": "2.0.1",
     "babel-plugin-react-compiler": "1.0.0",

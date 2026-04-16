@@ -29,23 +29,23 @@ CREATE TABLE yard_properties (
   -- Identity
   id                UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id       UUID          NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
-  
+
   -- What we're storing
   attribute_key     TEXT          NOT NULL,
   -- Enumerated values: 'grass_type', 'soil_type', 'sun_exposure',
   -- 'yard_size_sqft', 'climate_zone', 'usda_hardiness_zone',
   -- 'last_treatment_type', 'last_treatment_date', 'irrigation_type',
   -- 'slope', 'shade_coverage_pct'
-  
+
   attribute_value   TEXT          NOT NULL,
   -- Stored as TEXT; typed at read time by application layer.
   -- Enum values stored as string ('cool_season', 'warm_season', 'transition').
-  -- Numerics stored as string ('2400'). 
+  -- Numerics stored as string ('2400').
   -- Rationale: schema stability as attribute set expands.
-  
+
   value_unit        TEXT          NULL,
   -- 'sqft', 'pct', 'fahrenheit', etc. NULL if unitless.
-  
+
   -- Versioning
   version           INTEGER       NOT NULL DEFAULT 1,
   is_current        BOOLEAN       NOT NULL DEFAULT true,
@@ -53,36 +53,36 @@ CREATE TABLE yard_properties (
   -- Maintained by application layer on write.
   -- Alternative considered: view + MAX(version) — rejected; adds query complexity
   -- on hot path for negligible write savings.
-  
+
   -- Provenance
   source            TEXT          NOT NULL,
-  -- Enumerated: 'regional_inference', 'satellite_analysis', 
+  -- Enumerated: 'regional_inference', 'satellite_analysis',
   -- 'usda_api', 'user_confirmed', 'user_corrected', 'user_logged',
   -- 'proposal_feedback_implicit'
-  
+
   -- Confidence
   confidence_score  NUMERIC(3,2)  NOT NULL,
   -- Range: 0.00–1.00. Computed at write time by application layer
   -- using the confidence rules defined below. Stored, not computed on read.
   -- Rationale: computed-on-read is cheaper at write but creates
   -- divergence risk if rule logic changes. Stored score = auditable snapshot.
-  
+
   confidence_label  TEXT          NOT NULL,
   -- Enumerated: 'assumed', 'inferred', 'confirmed', 'corrected'
   -- Human-readable for prompt injection and UI rendering.
   -- Derived from source + interaction history, not from score alone.
-  
+
   is_locked         BOOLEAN       NOT NULL DEFAULT false,
   -- TRUE for attributes that must not be assumed — e.g., lime recommendations.
   -- These are never included in proposals as 'assumed'; they surface as
   -- 'recommended action: get soil test' instead.
   -- Current locked attributes: 'soil_ph', 'nutrient_deficiency'
-  
+
   -- Metadata
   created_at        TIMESTAMPTZ   NOT NULL DEFAULT now(),
   created_by        TEXT          NOT NULL DEFAULT 'system',
   -- 'system' | 'user:{user_id}' | 'agent:{agent_version}'
-  
+
   -- Constraints
   CONSTRAINT confidence_range CHECK (confidence_score BETWEEN 0.00 AND 1.00),
   CONSTRAINT valid_source CHECK (source IN (
@@ -96,18 +96,18 @@ CREATE TABLE yard_properties (
 );
 
 -- Indexes
-CREATE UNIQUE INDEX idx_yard_properties_current 
-  ON yard_properties (property_id, attribute_key) 
+CREATE UNIQUE INDEX idx_yard_properties_current
+  ON yard_properties (property_id, attribute_key)
   WHERE is_current = true;
 -- Enforces one current row per attribute per property.
 -- This is the most important index in the schema.
 
-CREATE INDEX idx_yard_properties_property_history 
+CREATE INDEX idx_yard_properties_property_history
   ON yard_properties (property_id, attribute_key, version DESC);
 -- Full version history reads for the audit/accuracy narrative.
 
-CREATE INDEX idx_yard_properties_confidence 
-  ON yard_properties (property_id, confidence_score) 
+CREATE INDEX idx_yard_properties_confidence
+  ON yard_properties (property_id, confidence_score)
   WHERE is_current = true;
 -- Feeds confidence-filtered queries in the context injection layer.
 ```
@@ -123,56 +123,56 @@ CREATE TABLE property_interactions (
   -- Identity
   id                  UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
   property_id         UUID          NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
-  user_id             UUID          NOT NULL REFERENCES users(id),
-  
+  user_id             UUID          NOT NULL REFERENCES neon_auth."user"(id),
+
   -- What happened
   interaction_type    TEXT          NOT NULL,
-  -- Enumerated: 
+  -- Enumerated:
   --   'confirm'   — user validated an assumed/inferred value as correct
   --   'correct'   — user changed an assumed/inferred value to something else
   --   'log'       — user reported an action they took (applied fertilizer, etc.)
   --   'dismiss'   — user dismissed a proposal without acting (implicit signal)
   --   'complete'  — user marked a recommended action as done
   --   'skip'      — user skipped a recommendation (too expensive, wrong season, etc.)
-  
+
   attribute_key       TEXT          NULL,
   -- NULL for interaction_types that don't target a specific attribute
   -- ('dismiss', 'complete', 'skip' on proposals are proposal-level, not attribute-level).
-  
+
   -- Values (before/after for mutations)
   previous_value      TEXT          NULL,
   -- The value of the attribute before this interaction.
   -- NULL on 'confirm' (value unchanged), 'log', 'dismiss'.
-  
+
   new_value           TEXT          NULL,
   -- The value after the interaction.
   -- NULL on 'dismiss'.
   -- On 'confirm': matches previous_value (logged for audit).
   -- On 'correct': the user's replacement value.
   -- On 'log': the reported action ('applied_fertilizer', 'overseeded', etc.).
-  
+
   -- Context at interaction time
   source_version_id   UUID          NULL REFERENCES yard_properties(id),
   -- Points to the yard_properties row that existed when this interaction occurred.
   -- Allows reconstruction of "what did the model think when the user confirmed this?"
-  
+
   proposal_id         UUID          NULL REFERENCES proposals(id),
   -- If this interaction came from a proposal card, which proposal.
   -- NULL if triggered from profile/onboarding outside a proposal.
-  
+
   -- Signal strength for confidence recalculation
   interaction_context TEXT          NOT NULL DEFAULT 'direct',
   -- 'direct'   — user explicitly interacted with an attribute field
   -- 'proposal' — interaction came from a proposal card accept/edit
   -- 'onboarding' — interaction came from onboarding flow
   -- 'implicit' — system-inferred from behavior (e.g., repeated dismissals)
-  
+
   -- Metadata
   created_at          TIMESTAMPTZ   NOT NULL DEFAULT now(),
   session_id          TEXT          NULL,
   -- Optional: for grouping interactions within a single session.
   -- Not required at launch; add if session analysis becomes necessary.
-  
+
   CONSTRAINT valid_interaction_type CHECK (interaction_type IN (
     'confirm', 'correct', 'log', 'dismiss', 'complete', 'skip'
   )),
@@ -182,20 +182,20 @@ CREATE TABLE property_interactions (
 );
 
 -- Indexes
-CREATE INDEX idx_property_interactions_property 
+CREATE INDEX idx_property_interactions_property
   ON property_interactions (property_id, created_at DESC);
 -- Primary read: "give me recent interactions for this property"
 
-CREATE INDEX idx_property_interactions_attribute 
+CREATE INDEX idx_property_interactions_attribute
   ON property_interactions (property_id, attribute_key, created_at DESC)
   WHERE attribute_key IS NOT NULL;
 -- Attribute-specific history: "how many times has grass_type been confirmed?"
 
-CREATE INDEX idx_property_interactions_user 
+CREATE INDEX idx_property_interactions_user
   ON property_interactions (user_id, created_at DESC);
 -- User-level engagement audit.
 
-CREATE INDEX idx_property_interactions_proposal 
+CREATE INDEX idx_property_interactions_proposal
   ON property_interactions (proposal_id)
   WHERE proposal_id IS NOT NULL;
 -- Proposal outcome tracking.
@@ -211,7 +211,7 @@ I'm not designing the full `properties` table here — that's a separate deliver
 -- Prerequisite: must exist before yard_properties migration
 CREATE TABLE properties (
   id          UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id     UUID    NOT NULL REFERENCES users(id),
+  user_id     UUID    NOT NULL REFERENCES neon_auth."user"(id),
   address     TEXT    NOT NULL,
   lat         NUMERIC(9,6) NULL,
   lng         NUMERIC(9,6) NULL,
@@ -236,8 +236,8 @@ RULE: user_corrected
   Trigger: source = 'user_corrected'
   Score: 0.95
   Label: 'corrected'
-  Rationale: User took the effort to actively change a value. Highest signal 
-             outside a verified external data source. Not 1.0 because users 
+  Rationale: User took the effort to actively change a value. Highest signal
+             outside a verified external data source. Not 1.0 because users
              sometimes correct to wrong values too.
 
 RULE: user_confirmed_direct
@@ -250,14 +250,14 @@ RULE: user_confirmed_proposal
   Trigger: source = 'user_confirmed' AND interaction_context = 'proposal'
   Score: 0.80
   Label: 'confirmed'
-  Rationale: Implicit confirmation via accepting a proposal. Real signal, 
+  Rationale: Implicit confirmation via accepting a proposal. Real signal,
              but less explicit than direct attribute confirmation.
 
 RULE: usda_api
   Trigger: source = 'usda_api'
   Score: 0.85
   Label: 'inferred'
-  Rationale: External authoritative source, but for the region not the 
+  Rationale: External authoritative source, but for the region not the
              specific property. Hardiness zone from USDA is highly reliable;
              soil type from USDA is regional approximation.
 
@@ -270,13 +270,13 @@ RULE: satellite_analysis
              regional average, not as good as user confirmation.
 
 RULE: regional_inference_transition_zone
-  Trigger: source = 'regional_inference' AND attribute_key = 'grass_type' 
+  Trigger: source = 'regional_inference' AND attribute_key = 'grass_type'
            AND inferred_zone_type = 'transition'
   Score: 0.45
   Label: 'assumed'
   Rationale: Transition zones are specifically uncertain. Per the product
-             decision: cool vs. warm season inferred from address, with 
-             confirmation tap in transition zones. This score triggers the 
+             decision: cool vs. warm season inferred from address, with
+             confirmation tap in transition zones. This score triggers the
              confirmation prompt in the UI.
 
 RULE: regional_inference_standard
@@ -319,7 +319,7 @@ This is the contract between the schema and the context injection stack. The con
 -- Returns: confidence-weighted current property state for a given property_id
 -- SLA: must complete in <50ms; this is on the hot path for streaming proposals
 
-SELECT 
+SELECT
   yp.attribute_key,
   yp.attribute_value,
   yp.value_unit,
@@ -329,23 +329,23 @@ SELECT
   yp.is_locked,
   yp.version,
   yp.created_at AS last_updated,
-  
+
   -- Interaction counts for context quality signal
   COUNT(pi.id) FILTER (WHERE pi.interaction_type = 'confirm') AS confirm_count,
   COUNT(pi.id) FILTER (WHERE pi.interaction_type = 'correct') AS correct_count,
   MAX(pi.created_at) AS last_interaction_at
 
 FROM yard_properties yp
-LEFT JOIN property_interactions pi 
-  ON pi.property_id = yp.property_id 
+LEFT JOIN property_interactions pi
+  ON pi.property_id = yp.property_id
   AND pi.attribute_key = yp.attribute_key
 
 WHERE yp.property_id = $1        -- bound parameter: property UUID
   AND yp.is_current = true
 
-GROUP BY 
+GROUP BY
   yp.id, yp.attribute_key, yp.attribute_value, yp.value_unit,
-  yp.confidence_score, yp.confidence_label, yp.source, 
+  yp.confidence_score, yp.confidence_label, yp.source,
   yp.is_locked, yp.version, yp.created_at
 
 ORDER BY yp.attribute_key;
@@ -365,31 +365,31 @@ interface AttributeContext {
   key: string;
   value: string;
   unit: string | null;
-  confidence: number;          // 0.00–1.00
+  confidence: number; // 0.00–1.00
   label: ConfidenceLabel;
   source: string;
   isLocked: boolean;
-  interactionCount: number;    // total confirms + corrects; proxy for data maturity
+  interactionCount: number; // total confirms + corrects; proxy for data maturity
 }
 
 interface PropertyContextBlock {
   propertyId: string;
-  snapshotTimestamp: string;   // ISO 8601, UTC
-  
+  snapshotTimestamp: string; // ISO 8601, UTC
+
   // Three tiers, separated at the application layer before injection
-  highConfidence: AttributeContext[];    // confidence >= 0.80; inject as facts
-  mediumConfidence: AttributeContext[];  // confidence 0.50–0.79; inject as "likely X"
-  lowConfidence: AttributeContext[];     // confidence < 0.50; inject as "assumed X, unverified"
-  lockedAttributes: AttributeContext[];  // is_locked = true; never inject as assumed;
-                                         // surface as "requires [action] before recommendation"
-  
+  highConfidence: AttributeContext[]; // confidence >= 0.80; inject as facts
+  mediumConfidence: AttributeContext[]; // confidence 0.50–0.79; inject as "likely X"
+  lowConfidence: AttributeContext[]; // confidence < 0.50; inject as "assumed X, unverified"
+  lockedAttributes: AttributeContext[]; // is_locked = true; never inject as assumed;
+  // surface as "requires [action] before recommendation"
+
   // Summary statistics for prompt header
   totalAttributes: number;
-  confirmedCount: number;      // label = 'confirmed' or 'corrected'
-  assumedCount: number;        // label = 'assumed'
+  confirmedCount: number; // label = 'confirmed' or 'corrected'
+  assumedCount: number; // label = 'assumed'
   dataMaturity: 'new' | 'partial' | 'mature';
   // new: <3 confirmed attributes
-  // partial: 3–6 confirmed attributes  
+  // partial: 3–6 confirmed attributes
   // mature: >6 confirmed attributes
 }
 ```
@@ -422,13 +422,13 @@ REQUIRES ACTION BEFORE RECOMMENDATION (locked — do not propose without):
 
 What goes to the Anthropic API on each proposal call:
 
-| Included | Not Included |
-|----------|-------------|
-| Property context block (as above) | User's full address (only address hash or property_id) |
-| Seasonal/climate data for the region | Other users' data |
-| Current proposal request | Historical proposals (by default) |
-| Member system prompt | Raw interaction logs |
-| Confidence labels and maturity score | PII beyond what's in the property block |
+| Included                             | Not Included                                           |
+| ------------------------------------ | ------------------------------------------------------ |
+| Property context block (as above)    | User's full address (only address hash or property_id) |
+| Seasonal/climate data for the region | Other users' data                                      |
+| Current proposal request             | Historical proposals (by default)                      |
+| Member system prompt                 | Raw interaction logs                                   |
+| Confidence labels and maturity score | PII beyond what's in the property block                |
 
 **Boundary rule:** The property context block is constructed from the query result and anonymized at the application layer before injection. The raw query result (which may contain the full address) does not get sent directly to the API. The application layer is responsible for this transformation. This boundary needs to be enforced in code review, not just in documentation.
 
