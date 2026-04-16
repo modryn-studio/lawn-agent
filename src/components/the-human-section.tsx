@@ -6,13 +6,12 @@ export default function TheHumanSection() {
           Your lawn doesn't have to be a mystery.
         </p>
         <p className="text-text mt-6 text-lg leading-relaxed">
-          Most people with a great lawn didn't start out knowing what they were
-          doing. They just stopped guessing.
+          Most people with a great lawn didn't start out knowing what they were doing. They just
+          stopped guessing.
         </p>
         <p className="text-text mt-4 text-lg leading-relaxed">
-          Lawn Agent is for the person who looked at their yard one day and
-          decided they wanted it to look amazing — and didn't know where to
-          start.
+          Lawn Agent is for the person who looked at their yard one day and decided they wanted it
+          to look amazing — and didn't know where to start.
         </p>
         <p className="text-text mt-4 text-lg leading-relaxed">
           Now you have a starting point. And it gets smarter every season.
