@@ -94,7 +94,7 @@ function buildContextBlock(rows: Record<string, unknown>[]): {
   const unlocked = allAttrs.filter((a) => !a.isLocked);
 
   const confirmedCount = allAttrs.filter(
-    (a) => a.label === 'confirmed' || a.label === 'corrected',
+    (a) => a.label === 'confirmed' || a.label === 'corrected'
   ).length;
 
   let dataMaturity: DataMaturity = 'new';
@@ -116,7 +116,7 @@ function buildContextBlock(rows: Record<string, unknown>[]): {
 // Consistency here matters: changing this format requires updating the system prompt.
 function serializeContextBlock(
   propertyId: string,
-  block: ReturnType<typeof buildContextBlock>,
+  block: ReturnType<typeof buildContextBlock>
 ): string {
   const ts = new Date().toISOString();
   const lines: string[] = [
@@ -130,7 +130,9 @@ function serializeContextBlock(
     for (const a of block.highConfidence) {
       const unit = a.unit ? ` ${a.unit}` : '';
       const interactions =
-        a.interactionCount > 0 ? `, ${a.interactionCount} interaction${a.interactionCount !== 1 ? 's' : ''}` : '';
+        a.interactionCount > 0
+          ? `, ${a.interactionCount} interaction${a.interactionCount !== 1 ? 's' : ''}`
+          : '';
       lines.push(`- ${a.key}: ${a.value}${unit} (${a.label}${interactions})`);
     }
     lines.push('');
@@ -159,7 +161,7 @@ function serializeContextBlock(
     for (const a of block.lockedAttributes) {
       const valueDisplay = a.value || '[not measured]';
       lines.push(
-        `- ${a.key}: ${valueDisplay} — recommend appropriate test or measurement before proposing`,
+        `- ${a.key}: ${valueDisplay} — recommend appropriate test or measurement before proposing`
       );
     }
     lines.push('');
@@ -199,7 +201,7 @@ export async function POST(req: Request): Promise<Response> {
     if (!parsed.success) {
       return log.end(
         ctx,
-        Response.json({ error: 'Invalid request', issues: parsed.error.issues }, { status: 400 }),
+        Response.json({ error: 'Invalid request', issues: parsed.error.issues }, { status: 400 })
       );
     }
 
@@ -246,7 +248,7 @@ export async function POST(req: Request): Promise<Response> {
     if (rows.length === 0) {
       return log.end(
         ctx,
-        Response.json({ error: 'No yard data for this property yet' }, { status: 422 }),
+        Response.json({ error: 'No yard data for this property yet' }, { status: 422 })
       );
     }
 
