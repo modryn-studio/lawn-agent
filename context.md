@@ -42,7 +42,7 @@ Landing page → email capture (early access) → onboarding (address input) →
 ## Stack Additions
 
 - `@neondatabase/serverless` — Neon serverless Postgres (yard_properties, property_interactions, proposals tables per Michelle's schema)
-- `@ai-sdk/anthropic` + `ai` — proposal generation via claude-sonnet-4-5 streaming
+- `@ai-sdk/anthropic` + `ai` — proposal generation via claude-sonnet-4-6 (generateObject)
 - `zod` — request body validation in API routes
 - Weather/soil temp API — TBD (Open-Meteo or similar, free tier)
 - USDA Plant Hardiness Zone API — zip code to hardiness zone lookup
@@ -58,7 +58,7 @@ Landing page → email capture (early access) → onboarding (address input) →
 
 ## Route Map
 
-- `/` — Landing page. Hero, value proposition, email capture for early access. No product yet — promise only.
+- `/` — Landing page. Hero (image + copy), How It Works, The Human Section, Footer. Email waitlist form live. No authenticated product yet.
 - `/onboarding` — Three screens: address input → first proposal → profile reveal with assumption labels. Address → proposal → correction. Never the reverse.
 - `/dashboard` — Main view after onboarding. Proposal feed, active recommendations, yard summary.
 - `/profile` — Yard details. Assumption corrections, treatment log, confidence labels per attribute.
@@ -89,6 +89,7 @@ LTD launch planned via private offer then AppSumo. $59–$100 one-time. LTD fund
 - r/frugalmalefashion (skip — wrong audience, listed in error)
 
 Correct list:
+
 - r/lawncare
 - r/homeowners
 - r/DIY

@@ -12,7 +12,9 @@ export default function HowItWorks() {
           questionnaire. No expertise required.
         </p>
         <div className="mt-8 space-y-3">
-          <p className="text-text text-lg">When your pre-emergent window opens, you&apos;ll know.</p>
+          <p className="text-text text-lg">
+            When your pre-emergent window opens, you&apos;ll know.
+          </p>
           <p className="text-text text-lg">When it&apos;s time to overseed, you&apos;ll know.</p>
           <p className="text-text text-lg">When something&apos;s off, you&apos;ll know.</p>
         </div>

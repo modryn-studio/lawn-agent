@@ -49,21 +49,23 @@ Playfair Display is the heading font (`font-heading` utility). Inter is the body
 
 Playfair is loaded at weights `400`, `600`, `700`. Use **700** for the wordmark only. Use **400** (regular) for all headings — Playfair at regular weight is the brand's visual signature. Weight 600 is loaded but intentionally unused at launch.
 
-| Element | Font | Mobile | Desktop | Weight | Tailwind utilities |
-|---|---|---|---|---|---|
-| Wordmark | Playfair Display | 16px | 18px | 700 | `font-heading text-base md:text-lg font-bold` |
-| H1 | Playfair Display | 36px | 56px | 400 | `font-heading text-4xl md:text-[56px] font-normal tracking-tight` |
-| Section heading | Playfair Display | 28px | 40px | 400 | `font-heading text-3xl md:text-[40px] font-normal tracking-tight` |
-| Sub-copy / intro | Inter | 16px | 18px | 400 | `text-base md:text-lg leading-relaxed` |
-| Body text | Inter | 15px | 16px | 400 | `text-[15px] sm:text-base leading-relaxed` |
-| Label / muted | Inter | 14px | 14px | 400 | `text-sm text-muted` |
+| Element          | Font             | Mobile | Desktop | Weight | Tailwind utilities                                                |
+| ---------------- | ---------------- | ------ | ------- | ------ | ----------------------------------------------------------------- |
+| Wordmark         | Playfair Display | 16px   | 18px    | 700    | `font-heading text-base md:text-lg font-bold`                     |
+| H1               | Playfair Display | 36px   | 56px    | 400    | `font-heading text-4xl md:text-[56px] font-normal tracking-tight` |
+| Section heading  | Playfair Display | 28px   | 40px    | 400    | `font-heading text-3xl md:text-[40px] font-normal tracking-tight` |
+| Sub-copy / intro | Inter            | 16px   | 18px    | 400    | `text-base md:text-lg leading-relaxed`                            |
+| Body text        | Inter            | 15px   | 16px    | 400    | `text-[15px] sm:text-base leading-relaxed`                        |
+| Label / muted    | Inter            | 14px   | 14px    | 400    | `text-sm text-muted`                                              |
 
 Line height rules:
+
 - Headings: `leading-[1.1]` on desktop H1, natural on mobile. Section headings: `leading-[1.15]`.
 - Body copy: `leading-relaxed` (~1.625). Close enough to spec's 1.6 — do not use `leading-[1.6]` (arbitrary values add noise).
 - Labels: default (`leading-normal`).
 
 Tracking rules:
+
 - All headings: `tracking-tight`. Never `tracking-normal` or wider on headings.
 - Body/UI: default tracking.
 

@@ -27,7 +27,8 @@ basePath:
 - `resend` — transactional email
 - `nodemailer` — email delivery
 - `@neondatabase/serverless` — Neon serverless Postgres (project: `blue-rain-41930180`, `aws-us-east-1`, Postgres 17)
-- **Planned (not yet installed):** `@ai-sdk/anthropic` + `ai` (proposal generation via claude-sonnet-4-5), weather/soil API (TBD)
+- `@ai-sdk/anthropic` + `ai` — proposal generation via `claude-sonnet-4-6` (AI SDK `generateObject`)
+- **Planned (not yet installed):** weather/soil API (TBD — Open-Meteo or similar), USDA Plant Hardiness Zone API (zip → hardiness zone lookup)
 
 ## Project Structure
 
@@ -74,12 +75,28 @@ basePath:
 - Convert: Ready. "Obvious decision."
 - Peak never reaches enthusiasm. Clarity and confidence, not excitement.
 
+**Typography Scale:**
+
+Playfair Display = `font-heading`. Inter = body/UI default. Playfair is loaded at 400/600/700. Use 700 for the wordmark only. All headings use 400 (regular) — this is the brand's visual signature.
+
+| Element          | Font     | Mobile | Desktop | Weight | Tailwind utilities                                                |
+| ---------------- | -------- | ------ | ------- | ------ | ----------------------------------------------------------------- |
+| Wordmark         | Playfair | 16px   | 18px    | 700    | `font-heading text-base md:text-lg font-bold`                     |
+| H1               | Playfair | 36px   | 56px    | 400    | `font-heading text-4xl md:text-[56px] font-normal tracking-tight` |
+| Section heading  | Playfair | 28px   | 40px    | 400    | `font-heading text-3xl md:text-[40px] font-normal tracking-tight` |
+| Sub-copy / intro | Inter    | 16px   | 18px    | 400    | `text-base md:text-lg leading-relaxed`                            |
+| Body text        | Inter    | 15px   | 16px    | 400    | `text-[15px] sm:text-base leading-relaxed`                        |
+| Label / muted    | Inter    | 14px   | 14px    | 400    | `text-sm text-muted`                                              |
+
+All headings: `tracking-tight`. Body/UI: default tracking. Use `leading-relaxed` for body copy — never `leading-[1.6]`. Never hardcode hex in `className` — use named token utilities.
+
 **Copy Reference:**
 
 - Hero: "Your yard. Figured out."
 - Sub-copy: "Stop researching. Stop guessing. Stop starting over every spring."
 - CTA: "I want a better yard"
 - Error: "Something went wrong. Try again."
+- Waitlist success: "You're on the list. We'll be in touch."
 - Yard vs. lawn distinction: "Yard" = whole property (emotional). "Lawn" = grass specifically (actionable). Do not collapse.
 
 ## README Standard
