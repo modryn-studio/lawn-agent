@@ -191,17 +191,20 @@ Add a **URL Prefix** property for https://modrynstudio.com/tools/[slug] for isol
 ### Bing Webmaster Tools
 1. Go to https://www.bing.com/webmasters
 2. Sign in with Microsoft account
-3. Select **Import from Google Search Console** â€” pulls your site and sitemap automatically
-4. Done (also covers Yahoo and DuckDuckGo which use Bing's index)
+3. Select **Import from Google Search Console** — pulls your site and verified property automatically
+4. Go to **Sitemaps** and submit `site.url/sitemap.xml` (same URL you submitted to GSC)
+5. Done (also covers Yahoo and DuckDuckGo which use Bing's index)
 
 ## Step 3: Validation
 Tell me to check these once the site is deployed.
 
-> **Use the direct Vercel URL for all validation tools** (e.g. https://yourapp.vercel.app/tools/yourtool), not the canonical modrynstudio.com URL. The root path /tools/yourtool on modrynstudio.com is served by modryn-studio-v2â€™s static page -- your Next.js app only serves sub-paths via rewrite. The Vercel URL always serves your actual app.
+Check `copilot-instructions.md` for the deployment mode:
+- **`standalone-domain`**: use the canonical domain (e.g. `https://lawnagent.app`) for all tools below — DNS points directly to Vercel.
+- **`modryn-app`**: use the direct Vercel URL (e.g. `https://yourapp.vercel.app/tools/slug`) — the canonical `modrynstudio.com/tools/slug` root path is served by modryn-studio-v2's static page, not your app.
 
-- **OG preview:** https://opengraph.xyz -- paste **direct Vercel URL**, verify title 50â€“60 chars, description 110â€“160 chars, image 1200Ã—630
-- **JSON-LD:** https://search.google.com/test/rich-results -- paste **direct Vercel URL**, should show â€œ1 valid item detectedâ€
-- **DNS propagation:** https://www.whatsmydns.net -- check TXT record has propagated
+- **OG preview:** https://opengraph.xyz — paste your URL, verify title 50–60 chars, description 110–160 chars, image 1200×630
+- **JSON-LD:** https://search.google.com/test/rich-results — paste your URL, should show "1 valid item detected"
+- **DNS propagation:** https://www.whatsmydns.net — check your domain's A/CNAME record has propagated
 
 
 
