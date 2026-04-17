@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import { Playfair_Display, Inter } from 'next/font/google';
 import { site } from '@/config/site';
+import { SiteSchema } from '@/components/site-schema';
 import './globals.css';
 
 const playfair = Playfair_Display({
@@ -12,6 +13,7 @@ const playfair = Playfair_Display({
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(site.url),
   title: site.ogTitle,
   description: site.description,
   // SVG favicon is primary — it embeds the logomark with a prefers-color-scheme
@@ -34,6 +36,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
+    site: site.social?.twitterHandle,
     title: site.ogTitle,
     description: site.ogDescription ?? site.description,
   },
@@ -43,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
       <body className="font-body antialiased">
+        <SiteSchema />
         {children}
         <Analytics />
       </body>

@@ -1,5 +1,5 @@
 {
-  "name": "your-project-name",
+  "name": "lawn-agent",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -41,5 +41,6 @@
     "prettier": "3.8.3",
     "prettier-plugin-tailwindcss": "0.7.2",
     "typescript": "6.0.2"
-  }
+  },
+  "description": "Lawn Agent monitors your yard, generates treatment proposals, and gets the right product in your cart."
 }
