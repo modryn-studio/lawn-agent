@@ -42,14 +42,14 @@ export default function HeroSignup() {
 
   if (done) {
     return (
-      <div className="mt-8">
+      <div className="mt-6 md:mt-8">
         <p className="text-accent text-sm">{site.waitlist.success}</p>
       </div>
     );
   }
 
   return (
-    <div className="mt-8">
+    <div className="mt-6 md:mt-8">
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
         <label htmlFor="hero-email" className="sr-only">
           Email address
@@ -62,12 +62,12 @@ export default function HeroSignup() {
           onChange={(e) => setEmail(e.target.value)}
           required
           disabled={submitting}
-          className="h-12 flex-1 rounded-[6px]"
+          className="h-12 flex-1 rounded-md"
         />
         <Button
           type="submit"
           disabled={submitting}
-          className="h-12 rounded-[6px] px-8 text-[15px] font-medium"
+          className="h-12 w-full rounded-md px-8 text-[15px] font-medium sm:w-auto"
         >
           {submitting ? 'Sending...' : site.cta}
         </Button>
