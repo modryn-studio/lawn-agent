@@ -121,10 +121,10 @@ export async function POST(req: Request): Promise<Response> {
                   properties: { source: site.name },
                 })
                 .then(() =>
-                  log.info(ctx.reqId, 'Resend contact created', { segmentId, source: site.name }),
+                  log.info(ctx.reqId, 'Resend contact created', { segmentId, source: site.name })
                 )
                 .catch((err) =>
-                  log.warn(ctx.reqId, 'Resend contact creation failed', { error: err }),
+                  log.warn(ctx.reqId, 'Resend contact creation failed', { error: err })
                 );
             })()
           : Promise.resolve();

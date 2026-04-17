@@ -269,10 +269,10 @@ Or run directly (requires [ImageMagick](https://imagemagick.org)):
 
 Every project ships with a working email system out of the box. Two services, two jobs:
 
-| Service | Job |
-| ------- | --- |
+| Service                     | Job                                                                                              |
+| --------------------------- | ------------------------------------------------------------------------------------------------ |
 | **Gmail SMTP (nodemailer)** | Founder notifications — you get an email when someone signs up, submits feedback, or files a bug |
-| **Resend** | Audience management — signups are added to your shared Resend contact list, tagged by project |
+| **Resend**                  | Audience management — signups are added to your shared Resend contact list, tagged by project    |
 
 **What's included without any extra code:**
 
