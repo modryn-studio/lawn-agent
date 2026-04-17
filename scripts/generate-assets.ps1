@@ -115,7 +115,9 @@ $isGrayscale = $maxSat -lt 0.05
 $negateFrag  = if ($isGrayscale) { @('-channel', 'RGB', '-negate') } else { @() }
 
 # -- icon.png - browser tab favicon --------------------------------------------
-magick $logomark -background none -trim +repage -resize 1024x1024 -gravity Center -background none -extent 1024x1024 "src\app\icon.png"
+# Mark is sized to 80% of canvas (820px) so it fits within the maskable safe zone.
+# Maskable icons use the inner 80% circle as the safe area — 100% fill gets cropped by Android.
+magick $logomark -background none -trim +repage -resize 820x820 -gravity Center -background none -extent 1024x1024 "src\app\icon.png"
 Write-Host "  + app/icon.png"
 
 # -- favicon.ico - legacy multi-resolution -------------------------------------
@@ -124,8 +126,10 @@ Write-Host "  + app/favicon.ico"
 
 # -- apple-icon.png - iOS home screen ------------------------------------------
 # iOS does not support transparent icons - always composite onto brand bg.
+# Mark is sized to 130px (72% of 180) — iOS clips with a rounded-rect mask, so
+# a mark at 78%+ fill looks blown up. 72% gives natural breathing room.
 magick -size 180x180 xc:"$bgColor" `
-    '(' $logomark -background none -trim +repage $negateFrag -resize 140x140 ')' `
+    '(' $logomark -background none -trim +repage $negateFrag -resize 130x130 ')' `
     -gravity Center -composite "src\app\apple-icon.png"
 Write-Host "  + app/apple-icon.png"
 
