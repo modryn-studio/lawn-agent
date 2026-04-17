@@ -3,6 +3,7 @@ import { env } from '@/lib/env';
 import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
 import { site } from '@/config/site';
+import { after } from 'next/server';
 
 const log = createRouteLogger('feedback');
 
@@ -82,53 +83,54 @@ export async function POST(req: Request): Promise<Response> {
       return log.end(ctx, Response.json({ error: 'Email service unavailable' }, { status: 503 }));
     }
 
-    // Send notification email
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: gmailUser, pass: gmailPass },
+    // Respond immediately — fire Gmail + Resend in parallel after the response
+    after(async () => {
+      const subjectMap: Record<FeedbackType, string> = {
+        newsletter: `📬 [${site.name}] New signup: ${body.email}`,
+        feedback: `💬 [${site.name}] Feedback${body.email ? ` from ${body.email}` : ''}`,
+        bug: `🐛 [${site.name}] Bug report${body.email ? ` from ${body.email}` : ''}`,
+      };
+
+      const emailPromise = nodemailer
+        .createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } })
+        .sendMail({
+          from: gmailUser,
+          to: feedbackTo,
+          subject: subjectMap[body.type],
+          html: buildHtml(body),
+          ...(hasEmail && { replyTo: body.email }),
+        })
+        .then(() => log.info(ctx.reqId, 'Email sent', { to: feedbackTo }))
+        .catch((err) => log.warn(ctx.reqId, 'Email send failed', { error: err }));
+
+      const resendPromise =
+        body.type === 'newsletter'
+          ? (() => {
+              const resendKey = env.RESEND_API_KEY;
+              if (!resendKey) {
+                log.warn(ctx.reqId, 'Resend not configured — signup not saved to contacts');
+                return Promise.resolve();
+              }
+              const resend = new Resend(resendKey);
+              const segmentId = env.RESEND_SEGMENT_ID;
+              return resend.contacts
+                .create({
+                  email: body.email!,
+                  unsubscribed: false,
+                  ...(segmentId && { segments: [{ id: segmentId }] }),
+                  properties: { source: site.name },
+                })
+                .then(() =>
+                  log.info(ctx.reqId, 'Resend contact created', { segmentId, source: site.name }),
+                )
+                .catch((err) =>
+                  log.warn(ctx.reqId, 'Resend contact creation failed', { error: err }),
+                );
+            })()
+          : Promise.resolve();
+
+      await Promise.all([emailPromise, resendPromise]);
     });
-
-    const subjectMap: Record<FeedbackType, string> = {
-      newsletter: `📬 [${site.name}] New signup: ${body.email}`,
-      feedback: `💬 [${site.name}] Feedback${body.email ? ` from ${body.email}` : ''}`,
-      bug: `🐛 [${site.name}] Bug report${body.email ? ` from ${body.email}` : ''}`,
-    };
-
-    await transporter.sendMail({
-      from: gmailUser,
-      to: feedbackTo,
-      subject: subjectMap[body.type],
-      html: buildHtml(body),
-      // replyTo lets you hit Reply in Gmail and go straight to the user
-      ...(hasEmail && { replyTo: body.email }),
-    });
-
-    log.info(ctx.reqId, 'Email sent', { to: feedbackTo });
-
-    // Add to Resend Contacts for newsletter signups (best-effort — never blocks the response)
-    // Contacts are tagged with source=site.name so all projects are filterable
-    // in the shared Resend account audience without needing separate segments.
-    if (body.type === 'newsletter') {
-      const resendKey = env.RESEND_API_KEY;
-      if (resendKey) {
-        try {
-          const resend = new Resend(resendKey);
-          const segmentId = env.RESEND_SEGMENT_ID;
-          await resend.contacts.create({
-            email: body.email!,
-            unsubscribed: false,
-            ...(segmentId && { segments: [{ id: segmentId }] }),
-            properties: { source: site.name },
-          });
-          log.info(ctx.reqId, 'Resend contact created', { segmentId, source: site.name });
-        } catch (resendError) {
-          // Non-fatal — inbox notification already sent, list add failed silently
-          log.warn(ctx.reqId, 'Resend contact creation failed', { error: resendError });
-        }
-      } else {
-        log.warn(ctx.reqId, 'Resend not configured — signup not saved to contacts');
-      }
-    }
 
     return log.end(ctx, Response.json({ ok: true }));
   } catch (error) {
