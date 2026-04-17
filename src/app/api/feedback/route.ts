@@ -17,6 +17,15 @@ interface FeedbackBody {
 
 const VALID_TYPES: FeedbackType[] = ['newsletter', 'feedback', 'bug'];
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 function buildHtml(body: FeedbackBody): string {
   const heading =
     body.type === 'newsletter'
@@ -25,12 +34,16 @@ function buildHtml(body: FeedbackBody): string {
         ? '💬 New Feedback'
         : '🐛 Bug Report';
 
+  const email = escapeHtml(body.email || '(not provided)');
+  const message = body.message ? escapeHtml(body.message) : null;
+  const page = body.page ? escapeHtml(body.page) : null;
+
   return `
     <div style="font-family: monospace; padding: 20px; max-width: 500px;">
       <h2 style="margin: 0 0 16px;">${heading}</h2>
-      <p><strong>Email:</strong> ${body.email || '(not provided)'}</p>
-      ${body.message ? `<p><strong>Message:</strong><br/>${body.message}</p>` : ''}
-      ${body.page ? `<p><strong>Page:</strong> ${body.page}</p>` : ''}
+      <p><strong>Email:</strong> ${email}</p>
+      ${message ? `<p><strong>Message:</strong><br/>${message}</p>` : ''}
+      ${page ? `<p><strong>Page:</strong> ${page}</p>` : ''}
       <hr style="margin: 16px 0; border: 1px solid #333;" />
       <p style="color: #666; font-size: 12px;">Sent from <strong>${site.name}</strong> &mdash; <a href="${site.url}">${site.url}</a></p>
     </div>
