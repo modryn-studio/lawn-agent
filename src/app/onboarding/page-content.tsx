@@ -80,6 +80,33 @@ export default function OnboardingContent() {
   const [error, setError] = useState<string | null>(null);
   const [signupError, setSignupError] = useState<string | null>(null);
 
+  // ── Loading screen gate ────────────────────────────────────────────────────
+  // Both the API result AND the message-3 minimum display time must be satisfied
+  // before advancing to the proposal screen. Whichever arrives second triggers it.
+  const pendingProposalRef = useRef<{
+    proposal: ProposalContent;
+    attributes: InferredAttribute[];
+    zip: string;
+    zone: string;
+    lat: string;
+    lng: string;
+  } | null>(null);
+  const message3ReadyRef = useRef(false);
+
+  function tryAdvanceToProposal() {
+    if (!pendingProposalRef.current || !message3ReadyRef.current) return;
+    const data = pendingProposalRef.current;
+    pendingProposalRef.current = null;
+    message3ReadyRef.current = false;
+    setProposal(data.proposal);
+    setAttributes(data.attributes);
+    setZone(data.zone);
+    setLat(data.lat);
+    setLng(data.lng);
+    storeOnboardingData(data);
+    setStep('proposal');
+  }
+
   // ── Mount logic: handle auth return ────────────────────────────────────────
   // Three cases:
   // 1. Fresh visit → step: 'zip' (default)
@@ -143,6 +170,9 @@ export default function OnboardingContent() {
   async function handleZipSubmit(submittedZip: string) {
     setZip(submittedZip);
     setError(null);
+    // Reset gate state for this attempt
+    pendingProposalRef.current = null;
+    message3ReadyRef.current = false;
     setStep('loading');
 
     try {
@@ -154,7 +184,7 @@ export default function OnboardingContent() {
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || 'Something went wrong. Try again.');
 
-      const data = {
+      pendingProposalRef.current = {
         proposal: body.proposal as ProposalContent,
         attributes: body.attributes as InferredAttribute[],
         zip: submittedZip,
@@ -162,14 +192,8 @@ export default function OnboardingContent() {
         lat: body.lat as string,
         lng: body.lng as string,
       };
-
-      setProposal(data.proposal);
-      setAttributes(data.attributes);
-      setZone(data.zone);
-      setLat(data.lat);
-      setLng(data.lng);
-      storeOnboardingData(data);
-      setStep('proposal');
+      // Only advances if message 3 has already been shown for 1s
+      tryAdvanceToProposal();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Try again.');
       setStep('zip');
@@ -233,7 +257,15 @@ export default function OnboardingContent() {
       );
 
     case 'loading':
-      return <LoadingScreen />;
+      return (
+        <LoadingScreen
+          onMessage3Ready={() => {
+            message3ReadyRef.current = true;
+            // Only advances if the API has already resolved
+            tryAdvanceToProposal();
+          }}
+        />
+      );
 
     case 'proposal':
       return proposal ? (

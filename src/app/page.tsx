@@ -5,6 +5,7 @@ import ProposalCard from '@/components/proposal-card';
 import HowItWorks from '@/components/how-it-works';
 import HumanSection from '@/components/human-section';
 import EarlyAccess from '@/components/early-access';
+import Footer from '@/components/footer';
 
 // TODO: title is 35 chars — below the 50-char SEO target. Brand tagline
 // is short by design; expand when the product has more to say (e.g. add
@@ -35,6 +36,7 @@ export default function Home() {
       <HowItWorks />
       <HumanSection />
       <EarlyAccess />
+      <Footer />
     </main>
   );
 }

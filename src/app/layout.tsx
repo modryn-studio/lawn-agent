@@ -3,7 +3,6 @@ import { Analytics } from '@vercel/analytics/next';
 import { Playfair_Display, Inter } from 'next/font/google';
 import { site } from '@/config/site';
 import { SiteSchema } from '@/components/site-schema';
-import Footer from '@/components/footer';
 import './globals.css';
 
 const playfair = Playfair_Display({
@@ -49,7 +48,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-body antialiased">
         <SiteSchema />
         {children}
-        <Footer />
         <Analytics />
       </body>
     </html>
