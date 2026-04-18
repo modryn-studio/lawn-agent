@@ -44,8 +44,8 @@ Landing page → email capture (early access) → onboarding (address input) →
 - `@neondatabase/serverless` — Neon serverless Postgres (yard_properties, property_interactions, proposals tables per Michelle's schema)
 - `@ai-sdk/anthropic` + `ai` — proposal generation via claude-sonnet-4-6 (generateObject)
 - `zod` — request body validation in API routes
+- phzmapi.org — USDA zone API (live). `GET https://phzmapi.org/{zip}.json` → `{ zone, temperature_range, coordinates: { lat, lon } }`
 - Weather/soil temp API — TBD (Open-Meteo or similar, free tier)
-- USDA Plant Hardiness Zone API — zip code to hardiness zone lookup
 
 ---
 
@@ -59,7 +59,9 @@ Landing page → email capture (early access) → onboarding (address input) →
 ## Route Map
 
 - `/` — Landing page. Hero (image + copy), Proposal Card (example), How It Works, Human Section, Early Access CTA, Footer. Email waitlist form live. No authenticated product yet.
-- `/onboarding` — Three screens: address input → first proposal → profile reveal with assumption labels. Address → proposal → correction. Never the reverse.
+- `/onboarding` — Five screens: zip input → loading → first proposal (approve/pass) → account creation → profile reveal. State persisted in sessionStorage across auth redirect.
+- `/api/onboarding/proposal` — Unauthenticated. Zip → zone lookup (phzmapi.org) → attribute inference → Claude proposal.
+- `/api/onboarding/complete` — Authenticated. Writes property + yard_properties + proposals rows.
 - `/dashboard` — Main view after onboarding. Proposal feed, active recommendations, yard summary.
 - `/profile` — Yard details. Assumption corrections, treatment log, confidence labels per attribute.
 - `/proposal/[id]` — Individual proposal. Full detail, approve/pass, deep link to pre-filled cart, completion confirmation.

@@ -10,6 +10,8 @@ Visit [lawnagent.app](https://lawnagent.app).
 
 The landing page has five sections: hero, an example proposal card, how it works, a human section, and a second email capture. No login. No dashboard.
 
+Onboarding is built. Users can enter their zip code, see a generated proposal, create an account, and land on a profile reveal screen. The dashboard route exists but has no content yet.
+
 ---
 
 ## Signing up for early access
@@ -25,24 +27,38 @@ If it fails: "Something went wrong. Try again." appears. Try again.
 
 ---
 
+## Onboarding flow
+
+1. `/onboarding` — Enter zip code
+2. Proposal generated via `/api/onboarding/proposal` (zone lookup + Claude)
+3. Approve → create account via BetterAuth → `/api/onboarding/complete` writes property, yard attributes, and proposal to DB → profile reveal
+4. Pass → optional email capture → back to landing page
+
+---
+
 ## What's not built yet
 
-Everything past the landing page — onboarding, dashboard, proposals, login. Not built.
+Dashboard, individual proposal pages, profile corrections, commerce deep links, subscription billing.
 
 ---
 
 ## Status
 
-| Feature             | Status              |
-| ------------------- | ------------------- |
-| Landing page        | ✅ Live             |
-| Email waitlist      | ✅ Live             |
-| `/api/waitlist`     | ✅ Live             |
-| Feedback widget     | ⏳ Built, not wired |
-| Onboarding          | ❌ Not built        |
-| Dashboard           | ❌ Not built        |
-| Proposals           | ❌ Not built        |
-| Profile             | ❌ Not built        |
-| `/api/proposals`    | ❌ Not built        |
-| `/api/yard`         | ❌ Not built        |
-| `/api/interactions` | ❌ Not built        |
+| Feature                                        | Status              |
+| ---------------------------------------------- | ------------------- |
+| Landing page                                   | ✅ Live             |
+| Email waitlist                                 | ✅ Live             |
+| `/api/waitlist`                                | ✅ Live             |
+| Onboarding (zip → proposal → signup → profile) | ✅ Built            |
+| `/api/onboarding/proposal`                     | ✅ Built            |
+| `/api/onboarding/complete`                     | ✅ Built            |
+| Auth (`/api/auth/[...path]`)                   | ✅ Built            |
+| `/api/yard`                                    | ✅ Built            |
+| `/api/interactions`                            | ✅ Built            |
+| `/api/proposals`                               | ✅ Built            |
+| Feedback widget                                | ⏳ Built, not wired |
+| Dashboard                                      | ❌ Not built        |
+| `/proposal/[id]`                               | ❌ Not built        |
+| Profile corrections                            | ❌ Not built        |
+| Commerce deep links                            | ❌ Not built        |
+| Subscription billing                           | ❌ Not built        |

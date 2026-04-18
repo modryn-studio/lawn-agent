@@ -119,7 +119,11 @@ export default function FeedbackWidget() {
         </p>
       ) : (
         <>
+          <label htmlFor="feedback-message" className="sr-only">
+            Feedback message
+          </label>
           <Textarea
+            id="feedback-message"
             ref={textareaRef}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -129,7 +133,11 @@ export default function FeedbackWidget() {
             rows={4}
             className="rounded-2xl"
           />
+          <label htmlFor="feedback-email" className="sr-only">
+            Email address (optional)
+          </label>
           <Input
+            id="feedback-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -138,7 +146,7 @@ export default function FeedbackWidget() {
             disabled={state === 'submitting'}
             className="mt-2 text-xs"
           />
-          {error && <p className="text-accent mt-2 text-xs">{error}</p>}
+          {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
           <div className="mt-3 flex justify-end">
             <Button
               onClick={handleSubmit}

@@ -28,7 +28,8 @@ basePath:
 - `nodemailer` — email delivery
 - `@neondatabase/serverless` — Neon serverless Postgres (project: `blue-rain-41930180`, `aws-us-east-1`, Postgres 17)
 - `@ai-sdk/anthropic` + `ai` — proposal generation via `claude-sonnet-4-6` (AI SDK `generateObject`)
-- **Planned (not yet installed):** weather/soil API (TBD — Open-Meteo or similar), USDA Plant Hardiness Zone API (zip → hardiness zone lookup)
+- **phzmapi.org** — USDA zone API (live). `GET https://phzmapi.org/{zip}.json` → `{ zone, temperature_range, coordinates: { lat, lon } }`. Note: field is `lon`, not `lng`.
+- **Planned (not yet installed):** weather/soil API (TBD — Open-Meteo or similar)
 
 ## Project Structure
 
@@ -43,11 +44,13 @@ basePath:
 ## Route Map
 
 - `/` → Landing page. Hero (image + copy), Proposal Card (example), How It Works, Human Section, Early Access CTA, Footer. Email waitlist form live. No authenticated product yet.
-- `/onboarding` → Three screens: address input → first proposal → profile reveal with assumption corrections.
+- `/onboarding` → Five screens: zip input → loading → first proposal (approve/pass) → account creation → profile reveal. State machine in `page-content.tsx`. Data persisted in sessionStorage across auth redirect.
 - `/dashboard` → Proposal feed, active recommendations, yard summary.
 - `/profile` → Yard details, assumption corrections, treatment log, confidence labels.
 - `/proposal/[id]` → Individual proposal detail, approve/pass, commerce deep link, completion confirmation.
 - `/api/proposals` → Proposal generation. Pulls yard context, calls Anthropic, returns structured proposal.
+- `/api/onboarding/proposal` → Unauthenticated. Zip → zone lookup (phzmapi.org) → attribute inference → Claude proposal. Returns `{ ok, proposal, attributes, zone, lat, lng }`.
+- `/api/onboarding/complete` → Authenticated. Writes property + yard_properties + proposals rows. Called after signup redirect.
 - `/api/yard` → Yard properties CRUD. Versioned rows, source + confidence tracking.
 - `/api/interactions` → Log user events: confirm, correct, log, approve, pass, complete.
 - `/api/waitlist` → Capture email + optional country at onboarding soft wall. No auth. Upserts on email.
@@ -96,6 +99,12 @@ All headings: `tracking-tight`. Body/UI: default tracking. Use `leading-relaxed`
 - Hero: "Your yard. Figured out."
 - Sub-copy: "Stop researching. Stop guessing. Stop starting over every spring."
 - CTA: "I want a better yard"
+- Onboarding zip screen: "We'll use this to tell you what your lawn needs."
+- Onboarding proposal screen: "Here's what your lawn needs today." / "Approve or pass. That's it."
+- Onboarding profile screen: "Here's what we're starting with for your area." / "We'll get more accurate every season."
+- Assumption label (medium confidence): "Clay-loam soil — likely for your area"
+- Assumption label (confirmed): "Cool-season grass — does that sound right? [Yes / No, change it]"
+- Locked attribute: "Soil pH not measured — get a soil test before we recommend amendments"
 - Error: "Something went wrong. Try again."
 - Waitlist success: "You're on the list. We'll be in touch."
 - Yard vs. lawn distinction: "Yard" = whole property (emotional). "Lawn" = grass specifically (actionable). Do not collapse.
