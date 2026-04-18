@@ -42,7 +42,7 @@ basePath:
 
 ## Route Map
 
-- `/` → Landing page. Hero, value proposition, email capture for early access.
+- `/` → Landing page. Hero (image + copy), Proposal Card (example), How It Works, Human Section, Early Access CTA, Footer. Email waitlist form live. No authenticated product yet.
 - `/onboarding` → Three screens: address input → first proposal → profile reveal with assumption corrections.
 - `/dashboard` → Proposal feed, active recommendations, yard summary.
 - `/profile` → Yard details, assumption corrections, treatment log, confidence labels.
@@ -50,6 +50,7 @@ basePath:
 - `/api/proposals` → Proposal generation. Pulls yard context, calls Anthropic, returns structured proposal.
 - `/api/yard` → Yard properties CRUD. Versioned rows, source + confidence tracking.
 - `/api/interactions` → Log user events: confirm, correct, log, approve, pass, complete.
+- `/api/waitlist` → Capture email + optional country at onboarding soft wall. No auth. Upserts on email.
 - `/privacy` → Privacy policy
 - `/terms` → Terms of service
 

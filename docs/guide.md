@@ -8,11 +8,13 @@ _Updated April 17, 2026._
 
 Visit [lawnagent.app](https://lawnagent.app).
 
-The page has three sections and a footer. No login. No dashboard. Just the landing page.
+The landing page has five sections: hero, an example proposal card, how it works, a human section, and a second email capture. No login. No dashboard.
 
 ---
 
 ## Signing up for early access
+
+Two places on the page to sign up — the hero at the top and the early access section at the bottom.
 
 1. Go to [lawnagent.app](https://lawnagent.app)
 2. Type your email into the field
@@ -31,18 +33,16 @@ Everything past the landing page — onboarding, dashboard, proposals, login. No
 
 ## Status
 
-| Feature         | Status              |
-| --------------- | ------------------- |
-| Landing page    | ✅ Live             |
-| Email waitlist  | ✅ Live             |
-| Feedback widget | ⏳ Built, not wired |
-| Onboarding      | ❌ Not built        |
-| Dashboard       | ❌ Not built        |
-| Proposals       | ❌ Not built        |
-| Profile         | ❌ Not built        |
-
-| `/api/proposals` | ❌ Not built | Requires `@ai-sdk/anthropic` + `@neondatabase/serverless`. |
-| `/api/yard` | ❌ Not built | Requires `@neondatabase/serverless`. |
-| `/api/interactions` | ❌ Not built | Requires `@neondatabase/serverless`. |
-| Neon DB | ❌ Not installed | Planned: `@neondatabase/serverless`. |
-| Anthropic / AI | ❌ Not installed | Planned: `@ai-sdk/anthropic` + `ai`. |
+| Feature             | Status              |
+| ------------------- | ------------------- |
+| Landing page        | ✅ Live             |
+| Email waitlist      | ✅ Live             |
+| `/api/waitlist`     | ✅ Live             |
+| Feedback widget     | ⏳ Built, not wired |
+| Onboarding          | ❌ Not built        |
+| Dashboard           | ❌ Not built        |
+| Proposals           | ❌ Not built        |
+| Profile             | ❌ Not built        |
+| `/api/proposals`    | ❌ Not built        |
+| `/api/yard`         | ❌ Not built        |
+| `/api/interactions` | ❌ Not built        |

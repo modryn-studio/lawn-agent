@@ -58,7 +58,7 @@ Landing page → email capture (early access) → onboarding (address input) →
 
 ## Route Map
 
-- `/` — Landing page. Hero (image + copy), How It Works, The Human Section, Footer. Email waitlist form live. No authenticated product yet.
+- `/` — Landing page. Hero (image + copy), Proposal Card (example), How It Works, Human Section, Early Access CTA, Footer. Email waitlist form live. No authenticated product yet.
 - `/onboarding` — Three screens: address input → first proposal → profile reveal with assumption labels. Address → proposal → correction. Never the reverse.
 - `/dashboard` — Main view after onboarding. Proposal feed, active recommendations, yard summary.
 - `/profile` — Yard details. Assumption corrections, treatment log, confidence labels per attribute.
@@ -68,6 +68,7 @@ Landing page → email capture (early access) → onboarding (address input) →
 - `/api/proposals` — Proposal generation endpoint. Pulls confidence-weighted yard context, calls Anthropic, returns structured proposal.
 - `/api/yard` — Yard properties CRUD. Versioned rows, source + confidence tracking per Michelle's schema.
 - `/api/interactions` — Log user events: confirm, correct, log, approve, pass, complete.
+- `/api/waitlist` — Capture email + optional country at onboarding soft wall. No auth. Upserts on email.
 
 ---
 

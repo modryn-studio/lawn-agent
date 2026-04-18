@@ -6,7 +6,7 @@ import { site } from '@/config/site';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-export default function HeroSignup() {
+export default function HeroSignup({ inputId = 'hero-email' }: { inputId?: string }) {
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
@@ -51,11 +51,11 @@ export default function HeroSignup() {
   return (
     <div className="mt-6 md:mt-8">
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
-        <label htmlFor="hero-email" className="sr-only">
+        <label htmlFor={inputId} className="sr-only">
           Email address
         </label>
         <Input
-          id="hero-email"
+          id={inputId}
           type="email"
           placeholder="your@email.com"
           value={email}

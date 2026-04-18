@@ -1,4 +1,4 @@
-export default function TheHumanSection() {
+export default function HumanSection() {
   return (
     <section className="bg-surface px-8 py-20 md:px-16 md:py-28">
       <div className="mx-auto max-w-2xl">
