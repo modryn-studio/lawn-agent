@@ -87,16 +87,42 @@ export async function POST(req: Request): Promise<Response> {
 
     // Generate proposal via Claude — same schema and system prompt as authenticated endpoint.
     // This is a real proposal, not a degraded preview.
-    const { object: proposal } = await generateObject({
+    const claudeStart = Date.now();
+    const {
+      object: proposal,
+      usage,
+      warnings,
+      finishReason,
+    } = await generateObject({
       model: anthropicClient('claude-sonnet-4-6'),
       schema: proposalSchema,
       system: SYSTEM_PROMPT,
       prompt: yardContext,
     });
+    const claudeMs = Date.now() - claudeStart;
+
+    // claude-sonnet-4-6 pricing: $3/M input tokens, $15/M output tokens
+    const inputCost = ((usage?.promptTokens ?? 0) / 1_000_000) * 3;
+    const outputCost = ((usage?.completionTokens ?? 0) / 1_000_000) * 15;
+    const totalCost = inputCost + outputCost;
 
     log.info(ctx.reqId, 'Proposal generated', {
       title: proposal.title,
       category: proposal.category,
+      finishReason,
+      claudeMs,
+      tokens: {
+        input: usage?.promptTokens,
+        output: usage?.completionTokens,
+        total: usage?.totalTokens,
+      },
+      costUsd: {
+        input: inputCost.toFixed(6),
+        output: outputCost.toFixed(6),
+        total: totalCost.toFixed(6),
+      },
+      warnings: warnings?.length ? warnings : undefined,
+      promptLength: yardContext.length,
     });
 
     return log.end(

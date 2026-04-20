@@ -69,6 +69,12 @@ Use named utilities generated from `@theme` in `globals.css`. Never use `[var(--
 
 Core tokens: `bg-accent`, `bg-bg`, `bg-surface`, `border-border`, `text-text`, `text-muted`, `text-accent`, `bg-secondary`
 
+**Button border radius:** always `rounded-button` (defined as `--radius-button: 6px` in `@theme`). This is Dieter's explicit spec — not pill, not `rounded-lg`, not `rounded-md`. Applies to every `<Button>`, `<Input>`, and `<Textarea>` call site.
+
+**Card/container border radius:** `rounded-lg` (8px). Cards, panels, list items — not buttons.
+
+**Borders on cards:** always `border-border` — the warm token (`#E8E4DE`). Never use opacity-based one-offs like `border-(--color-text)/15`.
+
 ## Responsive Patterns
 
 Page-level horizontal padding: `px-4 sm:px-6` — never `px-6` alone (mobile gets no breathing room).

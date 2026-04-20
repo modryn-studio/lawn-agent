@@ -53,7 +53,7 @@ basePath:
 - `/api/onboarding/complete` → Authenticated. Writes property + yard_properties + proposals rows. Called after signup redirect.
 - `/api/yard` → Yard properties CRUD. Versioned rows, source + confidence tracking.
 - `/api/interactions` → Log user events: confirm, correct, log, approve, pass, complete.
-- `/api/waitlist` → Capture email + optional country at onboarding soft wall. No auth. Upserts on email.
+- `/api/waitlist` → Capture email + optional country + optional zip at onboarding soft wall or Pass. No auth. Upserts on email. `source` distinguishes origin: `'pass'` (proposal passed), `'non_us'` (non-US block, pending), `'onboarding'` (default). Sends Gmail notification to founder on every signup. `zip` stored for seasonal re-engagement (issue #4); uses `COALESCE` on upsert so zip is never overwritten with null.
 - `/privacy` → Privacy policy
 - `/terms` → Terms of service
 
@@ -67,7 +67,8 @@ basePath:
 
 - Colors: Accent `#4A7C59` (field green), Secondary `#C4A35A` (dry grass gold — use sparingly, tips toward harvest festival at small sizes), Background `#FAF8F4` (warm off-white), Text `#1A1A1A` (near-black), Muted `#9A9590` (warm gray)
 - Fonts: Playfair Display (headings) + Inter (body/UI)
-- Motion: State change only. Never for delight. No animations on load.
+- Motion: State change only. Never for delight. No animations that run on load.
+- Button border radius: 6px (`rounded-button`). Not pill. Applied consistently across all buttons and inputs.
 - Avoid: Gradients, pill shapes, decorative shadows, Kelly green (#00A651 — Scotts), corporate blue-green (TruGreen), sage-and-sand (Sunday), leaf/grass/house icons.
 - Light mode only. No dark mode toggle.
 
@@ -92,7 +93,7 @@ Playfair Display = `font-heading`. Inter = body/UI default. Playfair is loaded a
 | Body text        | Inter    | 15px   | 16px    | 400    | `text-[15px] sm:text-base leading-relaxed`                        |
 | Label / muted    | Inter    | 14px   | 14px    | 400    | `text-sm text-muted`                                              |
 
-All headings: `tracking-tight`. Body/UI: default tracking. Use `leading-relaxed` for body copy — never `leading-[1.6]`. Never hardcode hex in `className` — use named token utilities.
+All headings: `tracking-tight`. Body/UI: default tracking. Line height: H1 desktop uses `leading-[1.1]`, natural on mobile. Section headings use `leading-[1.15]`. Body copy uses `leading-relaxed` — never `leading-[1.6]` (arbitrary value adds noise). Labels: default (`leading-normal`). Never hardcode hex in `className` — use named token utilities.
 
 **Copy Reference:**
 
@@ -159,7 +160,7 @@ This project uses Tailwind CSS v4. The rules are different from v3 — follow th
   --color-text: #1a1a1a; /* near-black — all primary copy */
   --color-muted: #9a9590; /* warm gray — labels, metadata, secondary info */
   --color-surface: #f0ede8; /* warm panel — card/panel backgrounds */
-  --color-border: #e0dcd6; /* warm border — subtle borders */
+  --color-border: #e8e4de; /* warm border — subtle borders */
   --font-heading: var(--font-playfair-display); /* Playfair Display */
 }
 

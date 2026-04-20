@@ -99,17 +99,42 @@ export async function POST(req: Request): Promise<Response> {
 
     // Call claude-sonnet-4-6 via AI SDK generateObject.
     // generateObject enforces schema conformance — no post-processing needed.
-    const { object: proposalContent } = await generateObject({
+    const claudeStart = Date.now();
+    const {
+      object: proposalContent,
+      usage,
+      warnings,
+      finishReason,
+    } = await generateObject({
       model: anthropicClient('claude-sonnet-4-6'),
       schema: proposalSchema,
       system: SYSTEM_PROMPT,
       prompt: yardContext,
     });
+    const claudeMs = Date.now() - claudeStart;
+
+    // claude-sonnet-4-6 pricing: $3/M input tokens, $15/M output tokens
+    const inputCost = ((usage?.promptTokens ?? 0) / 1_000_000) * 3;
+    const outputCost = ((usage?.completionTokens ?? 0) / 1_000_000) * 15;
 
     log.info(ctx.reqId, 'Proposal generated', {
       title: proposalContent.title,
       category: proposalContent.category,
       priority: proposalContent.priority,
+      finishReason,
+      claudeMs,
+      tokens: {
+        input: usage?.promptTokens,
+        output: usage?.completionTokens,
+        total: usage?.totalTokens,
+      },
+      costUsd: {
+        input: inputCost.toFixed(6),
+        output: outputCost.toFixed(6),
+        total: (inputCost + outputCost).toFixed(6),
+      },
+      warnings: warnings?.length ? warnings : undefined,
+      promptLength: yardContext.length,
     });
 
     // Insert proposal into DB

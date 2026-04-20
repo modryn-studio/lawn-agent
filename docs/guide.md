@@ -1,6 +1,6 @@
 # Lawn Agent — Guide
 
-_Updated April 17, 2026._
+_Updated April 20, 2026._
 
 ---
 
@@ -31,7 +31,7 @@ If it fails: "Something went wrong. Try again." appears. Try again.
 
 1. `/onboarding` — Enter zip code
 2. Proposal generated via `/api/onboarding/proposal` (zone lookup + Claude)
-3. Approve → create account via BetterAuth → `/api/onboarding/complete` writes property, yard attributes, and proposal to DB → profile reveal
+3. Approve → create account via BetterAuth → `/api/onboarding/complete` writes property, yard attributes, and proposal to DB → brief confirmation ("Your proposal is saved.") → profile reveal
 4. Pass → optional email capture → back to landing page
 
 ---

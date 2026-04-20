@@ -2,7 +2,7 @@ export default function ProposalCard() {
   return (
     <section className="bg-bg px-8 pt-16 pb-0 md:px-16 md:pt-20">
       <div className="mx-auto max-w-120">
-        <div className="rounded-lg border border-(--color-text)/15 bg-white p-8">
+        <div className="border-border rounded-lg border bg-white p-8">
           <p className="text-muted mb-4 text-xs tracking-widest uppercase">
             Example yard — Zone 6a, Northern US
           </p>

@@ -1,3 +1,5 @@
+> **Archived — pre-implementation spec.** Superseded by what shipped. See `brand.md` and the codebase for current truth.
+
 # Lawn Agent — Landing Page Copy
 
 **Version:** 1.0

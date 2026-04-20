@@ -11,7 +11,7 @@ import ProposalScreen from '@/components/onboarding/proposal-screen';
 import SignupScreen from '@/components/onboarding/signup-screen';
 import ProfileScreen from '@/components/onboarding/profile-screen';
 
-type Step = 'zip' | 'loading' | 'proposal' | 'signup' | 'completing' | 'profile';
+type Step = 'zip' | 'loading' | 'proposal' | 'confirmation' | 'signup' | 'profile';
 
 // ── sessionStorage keys ──────────────────────────────────────────────────────
 const SK = {
@@ -93,6 +93,12 @@ export default function OnboardingContent() {
   } | null>(null);
   const message3ReadyRef = useRef(false);
 
+  // ── Confirmation beat gate ─────────────────────────────────────────────────
+  // Advancing to 'profile' requires both: DB write done AND 2s display beat elapsed.
+  // Whichever arrives second triggers the transition.
+  const confirmWriteDoneRef = useRef(false);
+  const confirmBeatDoneRef = useRef(false);
+
   function tryAdvanceToProposal() {
     if (!pendingProposalRef.current || !message3ReadyRef.current) return;
     const data = pendingProposalRef.current;
@@ -120,14 +126,19 @@ export default function OnboardingContent() {
 
     const stored = loadOnboardingData();
     if (stored) {
-      // Case 2: returning from sign-up with stored onboarding data
+      // Case 2: returning from sign-up with stored onboarding data.
+      // Show the confirmation beat — DB write fires concurrently.
+      // The beat holds for 2s minimum; whichever arrives last (write or timer)
+      // triggers the advance to 'profile'.
       setProposal(stored.proposal);
       setAttributes(stored.attributes);
       setZip(stored.zip);
       setZone(stored.zone);
       setLat(stored.lat);
       setLng(stored.lng);
-      setStep('completing');
+      confirmWriteDoneRef.current = false;
+      confirmBeatDoneRef.current = false;
+      setStep('confirmation');
       completeOnboarding(stored);
     } else {
       // Case 3: auth'd but no onboarding data → already onboarded
@@ -135,6 +146,17 @@ export default function OnboardingContent() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.isPending, session.data]);
+
+  // ── Confirmation beat: hold 'confirmation' step for at least 2s ───────────
+  useEffect(() => {
+    if (step !== 'confirmation') return;
+    confirmBeatDoneRef.current = false; // reset on each entry
+    const timer = setTimeout(() => {
+      confirmBeatDoneRef.current = true;
+      if (confirmWriteDoneRef.current) setStep('profile');
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [step]);
 
   // ── Complete onboarding: write to DB ───────────────────────────────────────
   const completeOnboarding = useCallback(
@@ -157,7 +179,8 @@ export default function OnboardingContent() {
           throw new Error(body.error || 'Failed to save');
         }
         clearOnboardingData();
-        setStep('profile');
+        confirmWriteDoneRef.current = true;
+        if (confirmBeatDoneRef.current) setStep('profile');
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Something went wrong. Try again.');
         setStep('proposal');
@@ -213,8 +236,11 @@ export default function OnboardingContent() {
       return;
     }
     // Sign-up successful — session is now active. Complete onboarding.
-    setStep('completing');
-    await completeOnboarding({ proposal: proposal!, attributes, zip, zone, lat, lng });
+    // 'confirmation' is the handshake beat; write runs concurrently with the 2s timer.
+    confirmWriteDoneRef.current = false;
+    confirmBeatDoneRef.current = false;
+    setStep('confirmation');
+    completeOnboarding({ proposal: proposal!, attributes, zip, zone, lat, lng });
   }
 
   // ── Pass handler ───────────────────────────────────────────────────────────
@@ -224,7 +250,7 @@ export default function OnboardingContent() {
       fetch('/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, source: 'pass', zip }),
       }).catch(() => {});
     }
     clearOnboardingData();
@@ -246,7 +272,7 @@ export default function OnboardingContent() {
               <button
                 type="button"
                 onClick={() => setError(null)}
-                className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600"
+                className="rounded-button bg-red-50 px-4 py-2 text-sm text-red-600"
                 role="alert"
               >
                 {error}
@@ -277,7 +303,9 @@ export default function OnboardingContent() {
             setError(null);
             if (session.data?.user) {
               // Already authenticated (e.g., returning from failed completion)
-              setStep('completing');
+              confirmWriteDoneRef.current = false;
+              confirmBeatDoneRef.current = false;
+              setStep('confirmation');
               completeOnboarding({ proposal, attributes, zip, zone, lat, lng });
             } else {
               setStep('signup');
@@ -296,7 +324,7 @@ export default function OnboardingContent() {
         />
       );
 
-    case 'completing':
+    case 'confirmation':
       return (
         <div className="flex min-h-dvh items-center justify-center px-4 sm:px-6">
           <p className="text-text text-base">Your proposal is saved.</p>

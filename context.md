@@ -89,13 +89,6 @@ LTD launch planned via private offer then AppSumo. $59–$100 one-time. LTD fund
 - r/lawncare
 - r/homeowners
 - r/DIY
-- r/frugalmalefashion (skip — wrong audience, listed in error)
-
-Correct list:
-
-- r/lawncare
-- r/homeowners
-- r/DIY
 - r/gardening
 
 ---

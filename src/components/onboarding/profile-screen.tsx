@@ -63,9 +63,11 @@ export default function ProfileScreen({ attributes, onContinue }: ProfileScreenP
 
         <p className="text-muted text-sm">We&apos;ll get more accurate every season.</p>
 
-        <Button onClick={onContinue} className="w-full rounded-lg">
-          Go to dashboard
-        </Button>
+        <div className="flex justify-center">
+          <Button onClick={onContinue} className="rounded-button">
+            Go to dashboard
+          </Button>
+        </div>
       </div>
     </div>
   );

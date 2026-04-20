@@ -20,6 +20,7 @@ Someone who looked at their patchy lawn on a Saturday and decided they wanted it
 - Color mode: Light mode only. No dark mode toggle.
 - Fonts: Playfair Display (headings) + Inter (body/UI)
 - Motion: State change only. Never for delight. No animations that run on load.
+- Button border radius: 6px (`rounded-button`). Not pill. Applied consistently across all buttons and inputs.
 - Avoid: Gradients, pill shapes, decorative shadows, Kelly green (`#00A651` territory), corporate blue-green (TruGreen territory), sage-and-sand palette (Sunday territory), leaf icons, grass icons, house icons — fully commoditized in this category.
 
 ---
@@ -33,6 +34,8 @@ Someone who looked at their patchy lawn on a Saturday and decided they wanted it
 | Background | `#FAF8F4` | Warm off-white. Never pure white.                                                                                    |
 | Text       | `#1A1A1A` | Near-black. All primary copy.                                                                                        |
 | Muted      | `#9A9590` | Warm gray. Labels, metadata, secondary information.                                                                  |
+| Surface    | `#F0EDE8` | Warm panel. Card and panel backgrounds.                                                                              |
+| Border     | `#E8E4DE` | Warm border. Proposal cards, attribute cards, all card containers. Dieter spec.                                      |
 
 Color rules:
 

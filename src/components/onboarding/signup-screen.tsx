@@ -30,9 +30,9 @@ export default function SignupScreen({ onSignUp, onBack, error }: SignupScreenPr
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 sm:px-6">
       <div className="w-full max-w-sm space-y-6">
-        <h2 className="font-heading text-text text-2xl font-normal tracking-tight">
+        <h1 className="font-heading text-text text-2xl font-normal tracking-tight">
           Next: what to buy and where to get it.
-        </h2>
+        </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -47,7 +47,7 @@ export default function SignupScreen({ onSignUp, onBack, error }: SignupScreenPr
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="rounded-lg"
+              className="rounded-button"
             />
           </div>
           <div>
@@ -62,7 +62,7 @@ export default function SignupScreen({ onSignUp, onBack, error }: SignupScreenPr
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="rounded-lg"
+              className="rounded-button"
             />
           </div>
           <div>
@@ -78,13 +78,13 @@ export default function SignupScreen({ onSignUp, onBack, error }: SignupScreenPr
               minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="rounded-lg"
+              className="rounded-button"
             />
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 
-          <Button type="submit" disabled={submitting} className="w-full rounded-lg">
+          <Button type="submit" disabled={submitting} className="rounded-button w-full">
             {submitting ? 'Creating account…' : 'Create account'}
           </Button>
         </form>

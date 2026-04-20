@@ -30,7 +30,7 @@ export default function ProposalScreen({
           Here&apos;s what your lawn needs today.
         </h1>
 
-        <div className="rounded-lg border border-(--color-text)/15 bg-white p-5 sm:p-8">
+        <div className="border-border rounded-lg border bg-white p-5 sm:p-8">
           <p className="text-muted mb-4 text-xs tracking-widest uppercase">Zone {zone}</p>
           <p className="text-text text-[15px] leading-relaxed">{proposal.summary}</p>
           {proposal.product_suggestion && (
@@ -43,10 +43,14 @@ export default function ProposalScreen({
             {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
             <p className="text-muted mt-6 text-sm">Approve or pass. That&apos;s it.</p>
             <div className="mt-6 flex gap-3">
-              <Button onClick={onApprove} className="flex-1 rounded-lg">
+              <Button onClick={onApprove} className="rounded-button flex-1">
                 Approve
               </Button>
-              <Button variant="ghost" onClick={() => setPassed(true)} className="flex-1 rounded-lg">
+              <Button
+                variant="ghost"
+                onClick={() => setPassed(true)}
+                className="rounded-button flex-1"
+              >
                 Pass
               </Button>
             </div>
@@ -55,17 +59,21 @@ export default function ProposalScreen({
           <div className="mt-6 space-y-4">
             <p className="text-text text-sm">Not the right time. We&apos;ll be here when it is.</p>
             <div className="flex gap-2">
+              <label htmlFor="pass-email" className="sr-only">
+                Email
+              </label>
               <Input
+                id="pass-email"
                 type="email"
                 placeholder="Email (optional)"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="rounded-lg"
+                className="rounded-button"
               />
               <Button
                 variant="secondary"
                 onClick={() => onPass(email || undefined)}
-                className="shrink-0 rounded-lg"
+                className="rounded-button shrink-0"
               >
                 Done
               </Button>
