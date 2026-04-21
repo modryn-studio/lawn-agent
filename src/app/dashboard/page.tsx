@@ -6,6 +6,7 @@ import { site } from '@/config/site';
 import { AttributeCard } from '@/components/ui/attribute-card';
 import type { ProposalContent } from '@/lib/proposals';
 import { DashboardProposalCard } from '@/components/dashboard-proposal-card';
+import { DashboardHeader } from '@/components/dashboard-header';
 
 export const dynamic = 'force-dynamic';
 
@@ -96,7 +97,9 @@ export default async function DashboardPage() {
   const zone = attributes.find((a) => a.key === 'hardiness_zone')?.value ?? null;
 
   return (
-    <main className="flex min-h-dvh flex-col px-4 py-12 sm:px-6 sm:py-16">
+    <>
+      <DashboardHeader />
+      <main className="flex min-h-dvh flex-col px-4 py-12 sm:px-6 sm:py-16">
       <div className="mx-auto w-full max-w-md space-y-8">
         <h1 className="font-heading text-text text-3xl font-normal tracking-tight md:text-[40px]">
           Your yard.
@@ -125,5 +128,6 @@ export default async function DashboardPage() {
         )}
       </div>
     </main>
+    </>
   );
 }

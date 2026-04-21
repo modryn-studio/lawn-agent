@@ -134,7 +134,20 @@ export default function OnboardingContent() {
     if (session.isPending || mountHandled.current) return;
     mountHandled.current = true;
 
-    if (!session.data?.user) return; // Case 1: not auth'd → stay on zip
+    if (!session.data?.user) {
+      // Case 1b: not auth'd but sessionStorage has a proposal → restore from refresh
+      const stored = loadOnboardingData();
+      if (stored) {
+        setProposal(stored.proposal);
+        setAttributes(stored.attributes);
+        setZip(stored.zip);
+        setZone(stored.zone);
+        setLat(stored.lat);
+        setLng(stored.lng);
+        setStep('proposal');
+      }
+      return; // Case 1: no auth, no storage → stay on zip
+    }
 
     const stored = loadOnboardingData();
     if (stored) {

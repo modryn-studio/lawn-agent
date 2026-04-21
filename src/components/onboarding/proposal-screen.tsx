@@ -79,6 +79,13 @@ export default function ProposalScreen({
                 Done
               </Button>
             </div>
+            <Button
+              variant="ghost"
+              onClick={() => setPassed(false)}
+              className="rounded-button text-muted w-full"
+            >
+              Back to proposal
+            </Button>
           </div>
         )}
       </div>
