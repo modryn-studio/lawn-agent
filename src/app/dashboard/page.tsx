@@ -97,37 +97,37 @@ export default async function DashboardPage() {
   const zone = attributes.find((a) => a.key === 'hardiness_zone')?.value ?? null;
 
   return (
-    <>
+    <div className="flex min-h-dvh flex-col">
       <DashboardHeader />
-      <main className="flex min-h-dvh flex-col px-4 py-12 sm:px-6 sm:py-16">
-      <div className="mx-auto w-full max-w-md space-y-8">
-        <h1 className="font-heading text-text text-3xl font-normal tracking-tight md:text-[40px]">
-          Your yard.
-        </h1>
+      <main className="flex flex-1 flex-col px-4 py-12 sm:px-6 sm:py-16">
+        <div className="mx-auto w-full max-w-md space-y-8">
+          <h1 className="font-heading text-text text-3xl font-normal tracking-tight md:text-[40px]">
+            Your yard.
+          </h1>
 
-        {proposal && proposalId ? (
-          <div className="space-y-6">
-            {/* Proposal */}
-            <DashboardProposalCard proposal={proposal} proposalId={proposalId} zone={zone} />
+          {proposal && proposalId ? (
+            <div className="space-y-6">
+              {/* Proposal */}
+              <DashboardProposalCard proposal={proposal} proposalId={proposalId} zone={zone} />
 
-            {/* Attributes — directly below, no heading. Proximity carries the relationship. */}
-            {attributes.length > 0 && (
-              <ul className="space-y-4">
-                {attributes.map((attr) => (
-                  <AttributeCard
-                    key={attr.key}
-                    label={displayLabel(attr.key, attr.value)}
-                    sublabel={sublabel(attr.key, attr.confidenceLabel, attr.source)}
-                  />
-                ))}
-              </ul>
-            )}
-          </div>
-        ) : (
-          <p className="text-muted text-sm">No active proposals. Check back soon.</p>
-        )}
-      </div>
-    </main>
-    </>
+              {/* Attributes — directly below, no heading. Proximity carries the relationship. */}
+              {attributes.length > 0 && (
+                <ul className="space-y-4">
+                  {attributes.map((attr) => (
+                    <AttributeCard
+                      key={attr.key}
+                      label={displayLabel(attr.key, attr.value)}
+                      sublabel={sublabel(attr.key, attr.confidenceLabel, attr.source)}
+                    />
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : (
+            <p className="text-muted text-sm">No active proposals. Check back soon.</p>
+          )}
+        </div>
+      </main>
+    </div>
   );
 }
