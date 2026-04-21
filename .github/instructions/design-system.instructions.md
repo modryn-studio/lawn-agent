@@ -47,8 +47,8 @@ The primitives own structure and token contracts. Shape is a brand decision that
 
 ```tsx
 // ✅ correct — shape set at the call site, primitive stays neutral
-<Button className="rounded-none px-6">Submit</Button>
-<Input className="rounded-lg" />
+<Button className="rounded-button w-full">Submit</Button>
+<Input className="rounded-button" />
 
 // ❌ wrong — never add rounded-* to button.tsx / input.tsx / textarea.tsx base classes
 ```
@@ -74,6 +74,28 @@ Core tokens: `bg-accent`, `bg-bg`, `bg-surface`, `border-border`, `text-text`, `
 **Card/container border radius:** `rounded-lg` (8px). Cards, panels, list items — not buttons.
 
 **Borders on cards:** always `border-border` — the warm token (`#E8E4DE`). Never use opacity-based one-offs like `border-(--color-text)/15`.
+
+**Card backgrounds:** proposal cards and attribute cards use `bg-white`. Page section backgrounds (human-section, etc.) use `bg-surface`. The distinction is: same object across surfaces = same background. Context carries the meaning, not the card color.
+
+## Proposal Card — Canonical Structure
+
+Used on landing, onboarding proposal screen, and dashboard. Must be identical across all three surfaces except where noted.
+
+```tsx
+<div className="border-border rounded-lg border bg-white p-5 sm:p-8">
+  <p className="text-muted mb-4 text-xs uppercase tracking-widest">Zone {zone}</p>
+  <p className="text-text text-base font-medium leading-snug">{proposal.title}</p>
+  <p className="text-text mt-3 text-[15px] leading-relaxed">{proposal.summary}</p>
+  {/* Dashboard only — timing is contextual intelligence for when to act.
+      Not shown on landing or onboarding (complexity before trust). */}
+  <p className="text-muted mt-2 text-sm">{proposal.timing}</p>
+  {proposal.product_suggestion && (
+    <p className="text-accent mt-6 text-sm">{proposal.product_suggestion}</p>
+  )}
+</div>
+```
+
+Order: zone label → title → summary → timing (dashboard only) → product_suggestion. Do not reorder.
 
 ## Responsive Patterns
 

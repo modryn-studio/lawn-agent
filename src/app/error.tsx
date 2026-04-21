@@ -14,7 +14,7 @@ export default function Error({
         type="button"
         variant="ghost"
         onClick={reset}
-        className="rounded-button mt-4 text-sm text-accent underline"
+        className="rounded-button text-accent mt-4 text-sm underline"
       >
         Try again
       </Button>

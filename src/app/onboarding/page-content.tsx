@@ -288,7 +288,7 @@ export default function OnboardingContent() {
           <ZipScreen onSubmit={handleZipSubmit} />
           {error && (
             <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
-            {/* Exception: error toast with red bg — intentional non-standard styling, raw <button> */}
+              {/* Exception: error toast with red bg — intentional non-standard styling, raw <button> */}
               <button
                 type="button"
                 onClick={() => setError(null)}

@@ -67,10 +67,10 @@ basePath:
 
 **Visual Rules:**
 
-- Colors: Accent `#4A7C59` (field green), Secondary `#C4A35A` (dry grass gold — use sparingly, tips toward harvest festival at small sizes), Background `#FAF8F4` (warm off-white), Text `#1A1A1A` (near-black), Muted `#9A9590` (warm gray), Surface `#F0EDE8` (warm panel — card/panel backgrounds), Border `#E8E4DE` (warm border — cards, attribute cards, all card containers)
+- Colors: Accent `#4A7C59` (field green), Secondary `#C4A35A` (dry grass gold — use sparingly, tips toward harvest festival at small sizes), Background `#FAF8F4` (warm off-white), Text `#1A1A1A` (near-black), Muted `#9A9590` (warm gray), Surface `#F0EDE8` (warm panel — page section backgrounds e.g. human-section, NOT proposal or attribute cards), Border `#E8E4DE` (warm border — cards, attribute cards, all card containers)
 - Fonts: Playfair Display (headings) + Inter (body/UI)
 - Motion: State change only. Never for delight. No animations that run on load.
-- Button border radius: 6px (`rounded-button`). Not pill. Applied consistently across all buttons and inputs.
+- Button border radius: 6px (`rounded-button`). Not pill. Set at the **call site** via `className="rounded-button"` — never inside the primitive base class. Card/container border radius: 8px (`rounded-lg`). These two values are distinct and must not be mixed.
 - Avoid: Gradients, pill shapes, decorative shadows, Kelly green (#00A651 — Scotts), corporate blue-green (TruGreen), sage-and-sand (Sunday), leaf/grass/house icons.
 - Light mode only. No dark mode toggle.
 
