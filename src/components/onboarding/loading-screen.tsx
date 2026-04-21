@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 const MESSAGES = [
   'Reading your zone.',
@@ -24,9 +24,12 @@ export default function LoadingScreen({ onMessage3Ready }: LoadingScreenProps) {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
   const innerTimer = useRef<ReturnType<typeof setTimeout>>(null);
-  // Keep callback ref so the effect doesn't need it as a dependency
+  // Keep callback ref so the effect doesn't need it as a dependency.
+  // useLayoutEffect ensures the ref is current before any post-paint effects fire.
   const onReadyRef = useRef(onMessage3Ready);
-  onReadyRef.current = onMessage3Ready;
+  useLayoutEffect(() => {
+    onReadyRef.current = onMessage3Ready;
+  });
 
   useEffect(() => {
     if (index >= MESSAGES.length - 1) {

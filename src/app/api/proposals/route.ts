@@ -9,7 +9,7 @@ import {
   proposalSchema,
   buildContextBlock,
   serializeContextBlock,
-  SYSTEM_PROMPT,
+  buildSystemPrompt,
 } from '@/lib/proposals';
 
 const log = createRouteLogger('proposals');
@@ -99,6 +99,17 @@ export async function POST(req: Request): Promise<Response> {
 
     // Call claude-sonnet-4-6 via AI SDK generateObject.
     // generateObject enforces schema conformance — no post-processing needed.
+    const systemDate = new Date().toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+    log.info(ctx.reqId, 'Calling Claude', {
+      model: 'claude-sonnet-4-6',
+      systemDate,
+      promptChars: yardContext.length,
+    });
+
     const claudeStart = Date.now();
     const {
       object: proposalContent,
@@ -108,14 +119,14 @@ export async function POST(req: Request): Promise<Response> {
     } = await generateObject({
       model: anthropicClient('claude-sonnet-4-6'),
       schema: proposalSchema,
-      system: SYSTEM_PROMPT,
+      system: buildSystemPrompt(),
       prompt: yardContext,
     });
     const claudeMs = Date.now() - claudeStart;
 
     // claude-sonnet-4-6 pricing: $3/M input tokens, $15/M output tokens
-    const inputCost = ((usage?.promptTokens ?? 0) / 1_000_000) * 3;
-    const outputCost = ((usage?.completionTokens ?? 0) / 1_000_000) * 15;
+    const inputCost = ((usage?.inputTokens ?? 0) / 1_000_000) * 3;
+    const outputCost = ((usage?.outputTokens ?? 0) / 1_000_000) * 15;
 
     log.info(ctx.reqId, 'Proposal generated', {
       title: proposalContent.title,
@@ -124,8 +135,8 @@ export async function POST(req: Request): Promise<Response> {
       finishReason,
       claudeMs,
       tokens: {
-        input: usage?.promptTokens,
-        output: usage?.completionTokens,
+        input: usage?.inputTokens,
+        output: usage?.outputTokens,
         total: usage?.totalTokens,
       },
       costUsd: {
@@ -134,7 +145,6 @@ export async function POST(req: Request): Promise<Response> {
         total: (inputCost + outputCost).toFixed(6),
       },
       warnings: warnings?.length ? warnings : undefined,
-      promptLength: yardContext.length,
     });
 
     // Insert proposal into DB

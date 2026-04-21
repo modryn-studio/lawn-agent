@@ -7,7 +7,7 @@ import {
   proposalSchema,
   buildContextBlockFromAttributes,
   serializeContextBlock,
-  SYSTEM_PROMPT,
+  buildSystemPrompt,
 } from '@/lib/proposals';
 import { inferAttributesFromZone, toAttributeContext } from '@/lib/yard-inference';
 
@@ -83,10 +83,22 @@ export async function POST(req: Request): Promise<Response> {
     log.info(ctx.reqId, 'Context built from inference', {
       total: contextBlock.totalAttributes,
       maturity: contextBlock.dataMaturity,
+      attributes: attrs.map((a) => `${a.key}=${a.value}`),
     });
 
     // Generate proposal via Claude — same schema and system prompt as authenticated endpoint.
     // This is a real proposal, not a degraded preview.
+    const systemDate = new Date().toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+    log.info(ctx.reqId, 'Calling Claude', {
+      model: 'claude-sonnet-4-6',
+      systemDate,
+      promptChars: yardContext.length,
+    });
+
     const claudeStart = Date.now();
     const {
       object: proposal,
@@ -96,14 +108,14 @@ export async function POST(req: Request): Promise<Response> {
     } = await generateObject({
       model: anthropicClient('claude-sonnet-4-6'),
       schema: proposalSchema,
-      system: SYSTEM_PROMPT,
+      system: buildSystemPrompt(),
       prompt: yardContext,
     });
     const claudeMs = Date.now() - claudeStart;
 
     // claude-sonnet-4-6 pricing: $3/M input tokens, $15/M output tokens
-    const inputCost = ((usage?.promptTokens ?? 0) / 1_000_000) * 3;
-    const outputCost = ((usage?.completionTokens ?? 0) / 1_000_000) * 15;
+    const inputCost = ((usage?.inputTokens ?? 0) / 1_000_000) * 3;
+    const outputCost = ((usage?.outputTokens ?? 0) / 1_000_000) * 15;
     const totalCost = inputCost + outputCost;
 
     log.info(ctx.reqId, 'Proposal generated', {
@@ -112,8 +124,8 @@ export async function POST(req: Request): Promise<Response> {
       finishReason,
       claudeMs,
       tokens: {
-        input: usage?.promptTokens,
-        output: usage?.completionTokens,
+        input: usage?.inputTokens,
+        output: usage?.outputTokens,
         total: usage?.totalTokens,
       },
       costUsd: {
