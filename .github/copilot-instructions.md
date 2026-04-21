@@ -29,7 +29,7 @@ basePath:
 - `@neondatabase/serverless` — Neon serverless Postgres (project: `blue-rain-41930180`, `aws-us-east-1`, Postgres 17)
 - `@ai-sdk/anthropic` + `ai` — proposal generation via `claude-sonnet-4-6` (AI SDK `generateObject`)
 - **phzmapi.org** — USDA zone API (live). `GET https://phzmapi.org/{zip}.json` → `{ zone, temperature_range, coordinates: { lat, lon } }`. Note: field is `lon`, not `lng`.
-- **Planned (not yet installed):** weather/soil API (TBD — Open-Meteo or similar)
+- **open-meteo.com** — Weather + soil API (live, no API key). Two endpoints: `api.open-meteo.com/v1/forecast` (soil temps at 0cm/6cm hourly, daily precip, `past_days=3`) and `archive-api.open-meteo.com/v1/archive` (historical daily tmax/tmin for GDD). GDD accumulated base 32°F since Feb 15 (`GDD_SEASON_START = '02-15'`). See `src/lib/weather.ts`. Weather failure is non-fatal — proposal continues without weather block.
 
 ## Project Structure
 
@@ -43,13 +43,13 @@ basePath:
 
 ## Route Map
 
-- `/` → Landing page. Hero (image + copy), Proposal Card (example), How It Works, Human Section, Early Access CTA, Footer. Email waitlist form live. No authenticated product yet.
+- `/` → Landing page. Hero (image + copy), Proposal Card (example), How It Works, Human Section, Early Access CTA, Footer. Both CTAs link to `/onboarding`. No authenticated product yet.
 - `/onboarding` → Five screens: zip input → loading → first proposal (approve/pass) → account creation → profile reveal. State machine in `page-content.tsx`. Data persisted in sessionStorage across auth redirect.
 - `/dashboard` → Proposal feed, active recommendations, yard summary.
 - `/profile` → Yard details, assumption corrections, treatment log, confidence labels.
 - `/proposal/[id]` → Individual proposal detail, approve/pass, commerce deep link, completion confirmation.
 - `/api/proposals` → Proposal generation. Pulls yard context, calls Anthropic, returns structured proposal.
-- `/api/onboarding/proposal` → Unauthenticated. Zip → zone lookup (phzmapi.org) → attribute inference → Claude proposal. Returns `{ ok, proposal, attributes, zone, lat, lng }`.
+- `/api/onboarding/proposal` → Unauthenticated. Zip → zone lookup (phzmapi.org) → attribute inference + weather fetch (Open-Meteo) in parallel → Claude proposal with weather context block injected. Returns `{ ok, proposal, attributes, zone, lat, lng }`.
 - `/api/onboarding/complete` → Authenticated. Writes property + yard_properties + proposals rows. Called after signup redirect.
 - `/api/yard` → Yard properties CRUD. Versioned rows, source + confidence tracking.
 - `/api/interactions` → Log user events: confirm, correct, log, approve, pass, complete.
@@ -106,44 +106,10 @@ All headings: `tracking-tight`. Body/UI: default tracking. Line height: H1 deskt
 - Assumption label (medium confidence): "Clay-loam soil — likely for your area"
 - Assumption label (confirmed): "Cool-season grass — does that sound right? [Yes / No, change it]"
 - Locked attribute: "Soil pH not measured — get a soil test before we recommend amendments"
+- Footer: "© {year} Lawn Agent · Privacy · Terms"
 - Error: "Something went wrong. Try again."
 - Waitlist success: "You're on the list. We'll be in touch."
 - Yard vs. lawn distinction: "Yard" = whole property (emotional). "Lawn" = grass specifically (actionable). Do not collapse.
-
-## README Standard
-
-Every project README follows this exact structure — no more, no less:
-
-```markdown
-![Project Name](public/brand/banner.png)
-
-# Project Name
-
-One-line tagline. Outcome-focused — lead with what the user gets, not the technology.
-
-→ [domain.com](https://domain.com)
-
----
-
-Next.js · TypeScript · Tailwind CSS · Vercel
-```
-
-Rules:
-
-- **Banner image** — always first. Path is `public/brand/banner.png`.
-- **H1 title** — product name only, no subtitle.
-- **Tagline** — one sentence. What the user gets. No buzzwords ("powerful", "seamless", "AI-powered").
-- **Live link** — `→ [domain.com](https://domain.com)` format. Always present if live.
-- **Divider** — `---` separator before the stack line.
-- **Stack line** — `·`-separated list of core tech only. No version numbers, no descriptions.
-- **Nothing else.** No install instructions, no contributing section, no architecture diagrams, no screenshots beyond the banner. Real docs go in `/docs` or on the live site.
-
-When adding a badge row (optional, for open source tools/libraries only):
-
-- Place it between the H1 and the tagline
-- Use shields.io format: `[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)`
-- Keep it to 3 badges max: typically license + CI status + live site
-- Apps (not libraries) should skip badges entirely
 
 ## Tailwind v4
 

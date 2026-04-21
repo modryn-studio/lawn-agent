@@ -5,38 +5,40 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 const MESSAGES = [
   'Reading your zone.',
   'Checking soil temps.',
+  'Checking this week\u2019s weather.',
   'Building your first proposal.',
 ] as const;
 
-// Messages 1 and 2 hold 2.5s each → message 3 appears at ~5.2s.
-// Fastest observed call is ~6.9s, so message 3 is always visible before the proposal arrives.
-const HOLD_MS = 2500;
+// 3 transitions × 2s + 3 × 200ms crossfade ≈ 6.6s before message 4 appears.
+// Typical call with weather integration is ~16s, so message 4 holds ~9s before advancing.
+// That's at the edge — keep an eye on p50 latency and reduce hold if calls get faster.
+const HOLD_MS = 2000;
 
-// Minimum time message 3 must be visible before the parent may advance.
-// Guards against future calls faster than 5.2s skipping the final message entirely.
-const MESSAGE3_MIN_MS = 1000;
+// Minimum time the final message must be visible before the parent may advance.
+// Guards against fast API responses skipping the last message entirely.
+const LAST_MESSAGE_MIN_MS = 1000;
 
 interface LoadingScreenProps {
-  onMessage3Ready?: () => void;
+  onLastMessageReady?: () => void;
 }
 
-export default function LoadingScreen({ onMessage3Ready }: LoadingScreenProps) {
+export default function LoadingScreen({ onLastMessageReady }: LoadingScreenProps) {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
   const innerTimer = useRef<ReturnType<typeof setTimeout>>(null);
   // Keep callback ref so the effect doesn't need it as a dependency.
   // useLayoutEffect ensures the ref is current before any post-paint effects fire.
-  const onReadyRef = useRef(onMessage3Ready);
+  const onReadyRef = useRef(onLastMessageReady);
   useLayoutEffect(() => {
-    onReadyRef.current = onMessage3Ready;
+    onReadyRef.current = onLastMessageReady;
   });
 
   useEffect(() => {
     if (index >= MESSAGES.length - 1) {
-      // Message 3 is visible — wait minimum display time then signal parent
+      // Final message is visible — wait minimum display time then signal parent
       const minTimer = setTimeout(() => {
         onReadyRef.current?.();
-      }, MESSAGE3_MIN_MS);
+      }, LAST_MESSAGE_MIN_MS);
       return () => clearTimeout(minTimer);
     }
 

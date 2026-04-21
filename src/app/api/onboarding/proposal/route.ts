@@ -10,6 +10,7 @@ import {
   buildSystemPrompt,
 } from '@/lib/proposals';
 import { inferAttributesFromZone, toAttributeContext } from '@/lib/yard-inference';
+import { fetchWeatherContext, serializeWeatherContext } from '@/lib/weather';
 
 const log = createRouteLogger('onboarding-proposal');
 
@@ -74,16 +75,35 @@ export async function POST(req: Request): Promise<Response> {
 
     log.info(ctx.reqId, 'Zone resolved', { zone, lat, lng });
 
-    // Infer yard attributes from zone
-    const inferred = inferAttributesFromZone(zone, lat, lng);
+    // Fetch weather in parallel with (synchronous) attribute inference.
+    // Weather failure is non-fatal — we warn and fall back to a weather-less prompt.
+    const [inferred, weatherCtx] = await Promise.all([
+      Promise.resolve(inferAttributesFromZone(zone, lat, lng)),
+      fetchWeatherContext(lat, lng).catch((error) => {
+        log.warn(ctx.reqId, 'Weather fetch failed, continuing without weather block', { error });
+        return null;
+      }),
+    ]);
+
     const attrs = inferred.map(toAttributeContext);
     const contextBlock = buildContextBlockFromAttributes(attrs);
     const yardContext = serializeContextBlock(`onboarding-${zip}`, contextBlock);
+    const weatherBlock = weatherCtx ? serializeWeatherContext(weatherCtx) : '';
+    const finalPrompt = weatherBlock ? `${yardContext}\n${weatherBlock}` : yardContext;
 
     log.info(ctx.reqId, 'Context built from inference', {
       total: contextBlock.totalAttributes,
       maturity: contextBlock.dataMaturity,
       attributes: attrs.map((a) => `${a.key}=${a.value}`),
+      weather: weatherCtx
+        ? {
+            soilTemp0cm: weatherCtx.soilTemp0cm,
+            soilTemp6cm: weatherCtx.soilTemp6cm,
+            precipLast3Days: Number(weatherCtx.precipLast3Days.toFixed(2)),
+            precipNext3Days: Number(weatherCtx.precipNext3Days.toFixed(2)),
+            gddAccumulated: weatherCtx.gddAccumulated,
+          }
+        : null,
     });
 
     // Generate proposal via Claude — same schema and system prompt as authenticated endpoint.
@@ -96,7 +116,7 @@ export async function POST(req: Request): Promise<Response> {
     log.info(ctx.reqId, 'Calling Claude', {
       model: 'claude-sonnet-4-6',
       systemDate,
-      promptChars: yardContext.length,
+      promptChars: finalPrompt.length,
     });
 
     const claudeStart = Date.now();
@@ -109,7 +129,7 @@ export async function POST(req: Request): Promise<Response> {
       model: anthropicClient('claude-sonnet-4-6'),
       schema: proposalSchema,
       system: buildSystemPrompt(systemDate),
-      prompt: yardContext,
+      prompt: finalPrompt,
     });
     const claudeMs = Date.now() - claudeStart;
 
@@ -134,7 +154,7 @@ export async function POST(req: Request): Promise<Response> {
         total: totalCost.toFixed(6),
       },
       warnings: warnings?.length ? warnings : undefined,
-      promptChars: yardContext.length,
+      promptChars: finalPrompt.length,
     });
 
     return log.end(

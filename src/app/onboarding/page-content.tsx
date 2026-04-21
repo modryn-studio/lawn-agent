@@ -91,7 +91,7 @@ export default function OnboardingContent() {
     lat: string;
     lng: string;
   } | null>(null);
-  const message3ReadyRef = useRef(false);
+  const lastMessageReadyRef = useRef(false);
 
   // ── Confirmation beat gate ─────────────────────────────────────────────────
   // Advancing to 'profile' requires both: DB write done AND 2s display beat elapsed.
@@ -100,10 +100,10 @@ export default function OnboardingContent() {
   const confirmBeatDoneRef = useRef(false);
 
   function tryAdvanceToProposal() {
-    if (!pendingProposalRef.current || !message3ReadyRef.current) return;
+    if (!pendingProposalRef.current || !lastMessageReadyRef.current) return;
     const data = pendingProposalRef.current;
     pendingProposalRef.current = null;
-    message3ReadyRef.current = false;
+    lastMessageReadyRef.current = false;
     setProposal(data.proposal);
     setAttributes(data.attributes);
     setZone(data.zone);
@@ -195,7 +195,7 @@ export default function OnboardingContent() {
     setError(null);
     // Reset gate state for this attempt
     pendingProposalRef.current = null;
-    message3ReadyRef.current = false;
+    lastMessageReadyRef.current = false;
     setStep('loading');
 
     try {
@@ -285,8 +285,8 @@ export default function OnboardingContent() {
     case 'loading':
       return (
         <LoadingScreen
-          onMessage3Ready={() => {
-            message3ReadyRef.current = true;
+          onLastMessageReady={() => {
+            lastMessageReadyRef.current = true;
             // Only advances if the API has already resolved
             tryAdvanceToProposal();
           }}

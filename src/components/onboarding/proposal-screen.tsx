@@ -30,7 +30,7 @@ export default function ProposalScreen({
           Here&apos;s what your lawn needs today.
         </h1>
 
-        <div className="border-border rounded-lg border bg-white p-5 sm:p-8">
+        <div className="border-border bg-surface rounded-lg border p-5 sm:p-8">
           <p className="text-muted mb-4 text-xs tracking-widest uppercase">Zone {zone}</p>
           <p className="text-text text-[15px] leading-relaxed">{proposal.summary}</p>
           {proposal.product_suggestion && (

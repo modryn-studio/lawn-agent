@@ -54,7 +54,7 @@ export default function ProfileScreen({ attributes, onContinue }: ProfileScreenP
 
         <ul className="space-y-4">
           {displayAttrs.map((attr) => (
-            <li key={attr.key} className="border-border rounded-lg border bg-white px-5 py-4">
+            <li key={attr.key} className="border-border bg-surface rounded-lg border px-5 py-4">
               <p className="text-text text-[15px] leading-relaxed">{displayLabel(attr)}</p>
               <p className="text-muted mt-1 text-xs">{sourceLabel(attr)}</p>
             </li>

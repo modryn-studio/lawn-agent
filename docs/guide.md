@@ -14,23 +14,20 @@ Onboarding is built. Users can enter their zip code, see a generated proposal, c
 
 ---
 
-## Signing up for early access
+## Getting started
 
-Two places on the page to sign up — the hero at the top and the early access section at the bottom.
+Both CTAs on the landing page go directly to onboarding.
 
 1. Go to [lawnagent.app](https://lawnagent.app)
-2. Type your email into the field
-3. Click **I want a better yard**
-4. You see: "You're on the list. We'll be in touch."
-
-If it fails: "Something went wrong. Try again." appears. Try again.
+2. Click **I want a better yard**
+3. Enter your zip code and get a proposal
 
 ---
 
 ## Onboarding flow
 
 1. `/onboarding` — Enter zip code
-2. Proposal generated via `/api/onboarding/proposal` (zone lookup + Claude)
+2. Proposal generated via `/api/onboarding/proposal` (zone lookup + live weather/soil data + Claude)
 3. Approve → create account via BetterAuth → `/api/onboarding/complete` writes property, yard attributes, and proposal to DB → brief confirmation ("Your proposal is saved.") → profile reveal
 4. Pass → optional email capture → back to landing page
 

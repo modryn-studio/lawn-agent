@@ -45,7 +45,7 @@ Landing page → email capture (early access) → onboarding (address input) →
 - `@ai-sdk/anthropic` + `ai` — proposal generation via claude-sonnet-4-6 (generateObject)
 - `zod` — request body validation in API routes
 - phzmapi.org — USDA zone API (live). `GET https://phzmapi.org/{zip}.json` → `{ zone, temperature_range, coordinates: { lat, lon } }`
-- Weather/soil temp API — TBD (Open-Meteo or similar, free tier)
+- open-meteo.com — Weather + soil API (live, no API key). Forecast: `api.open-meteo.com/v1/forecast` (soil temps 0cm/6cm hourly, daily precip, `past_days=3`). Archive: `archive-api.open-meteo.com/v1/archive` (historical daily tmax/tmin for GDD since Feb 15). See `src/lib/weather.ts`.
 
 ---
 
@@ -58,9 +58,9 @@ Landing page → email capture (early access) → onboarding (address input) →
 
 ## Route Map
 
-- `/` — Landing page. Hero (image + copy), Proposal Card (example), How It Works, Human Section, Early Access CTA, Footer. Email waitlist form live. No authenticated product yet.
+- `/` — Landing page. Hero (image + copy), Proposal Card (example), How It Works, Human Section, Early Access CTA, Footer. Both CTAs link to `/onboarding`. No authenticated product yet.
 - `/onboarding` — Five screens: zip input → loading → first proposal (approve/pass) → account creation → profile reveal. State persisted in sessionStorage across auth redirect.
-- `/api/onboarding/proposal` — Unauthenticated. Zip → zone lookup (phzmapi.org) → attribute inference → Claude proposal.
+- `/api/onboarding/proposal` — Unauthenticated. Zip → zone lookup (phzmapi.org) → attribute inference + weather fetch (Open-Meteo, parallel) → Claude proposal with weather context injected.
 - `/api/onboarding/complete` — Authenticated. Writes property + yard_properties + proposals rows.
 - `/dashboard` — Main view after onboarding. Proposal feed, active recommendations, yard summary.
 - `/profile` — Yard details. Assumption corrections, treatment log, confidence labels per attribute.
@@ -70,7 +70,7 @@ Landing page → email capture (early access) → onboarding (address input) →
 - `/api/proposals` — Proposal generation endpoint. Pulls confidence-weighted yard context, calls Anthropic, returns structured proposal.
 - `/api/yard` — Yard properties CRUD. Versioned rows, source + confidence tracking per Michelle's schema.
 - `/api/interactions` — Log user events: confirm, correct, log, approve, pass, complete.
-- `/api/waitlist` — Capture email + optional country at onboarding soft wall. No auth. Upserts on email.
+- `/api/waitlist` — Capture email + optional country + optional zip at onboarding soft wall or Pass. No auth. Upserts on email. `source` distinguishes origin: `'pass'` (proposal passed), `'non_us'` (non-US block, pending), `'onboarding'` (default). Sends Gmail notification to founder on every signup. `zip` stored for seasonal re-engagement; uses `COALESCE` on upsert so zip is never overwritten with null.
 
 ---
 

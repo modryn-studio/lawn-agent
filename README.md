@@ -1,6 +1,6 @@
 ![Lawn Agent](public/brand/wordmark.png)
 
-Your yard, figured out.
+Your yard. Figured out.
 
 → [lawnagent.app](https://lawnagent.app)
 

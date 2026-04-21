@@ -116,9 +116,8 @@ Peak never reaches enthusiasm. The user wants clarity and confidence — not exc
 - Assumption label (medium confidence): "Clay-loam soil — likely for your area"
 - Assumption label (confirmed): "Cool-season grass — does that sound right? [Yes / No, change it]"
 - Locked attribute: "Soil pH not measured — get a soil test before we recommend amendments"
-- Footer: TBD
+- Footer: "© {year} Lawn Agent · Privacy · Terms"
 - Error: "Something went wrong. Try again."
-- Early access waitlist headline: TBD — write after first 10 users give signal on language
 - Waitlist success: "You're on the list. We'll be in touch."
 
 ---
