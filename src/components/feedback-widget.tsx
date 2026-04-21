@@ -144,7 +144,7 @@ export default function FeedbackWidget() {
             onKeyDown={handleKeyDown}
             placeholder="Email (optional — for a reply)"
             disabled={state === 'submitting'}
-            className="mt-2 text-xs"
+            className="rounded-button mt-2 text-xs"
           />
           {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
           <div className="mt-3 flex justify-end">
@@ -152,7 +152,7 @@ export default function FeedbackWidget() {
               onClick={handleSubmit}
               disabled={!message.trim() || state === 'submitting'}
               size="sm"
-              className="flex items-center gap-2"
+              className="rounded-button flex items-center gap-2"
             >
               <Send size={12} />
               {state === 'submitting' ? 'Sending...' : 'Send'}
@@ -166,6 +166,7 @@ export default function FeedbackWidget() {
   const panelHeader = (
     <div className="border-border flex items-center justify-between border-b px-4 py-3">
       <span className="text-xs font-semibold tracking-widest uppercase">Feedback</span>
+      {/* Exception: icon-only close button — non-standard shape, raw <button> intentional */}
       <button
         onClick={close}
         className="text-muted hover:text-text -mr-1 p-1 transition-colors"
@@ -202,6 +203,7 @@ export default function FeedbackWidget() {
         }`}
       >
         {/* Tab — leftmost, always the visible 'handle' */}
+        {/* Exception: filing-cabinet tab — non-standard shape/layout, raw <button> intentional */}
         <button
           onClick={() => setState(isOpen ? 'idle' : 'open')}
           className="text-accent border-border bg-surface hover:bg-border/40 flex shrink-0 items-center rounded-l-2xl border border-r-0 px-3 py-2 text-xs font-semibold tracking-wide shadow-md transition-colors"

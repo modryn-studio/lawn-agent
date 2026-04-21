@@ -1,4 +1,5 @@
 'use client';
+import { Button } from '@/components/ui/button';
 
 export default function Error({
   reset,
@@ -9,13 +10,14 @@ export default function Error({
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-4">
       <p className="text-text text-base">Something went wrong.</p>
-      <button
+      <Button
         type="button"
+        variant="ghost"
         onClick={reset}
-        className="text-accent mt-4 text-sm underline"
+        className="rounded-button mt-4 text-sm text-accent underline"
       >
         Try again
-      </button>
+      </Button>
     </main>
   );
 }

@@ -40,7 +40,7 @@ export function Button({
     <button
       type={type}
       className={cn(
-        'rounded-button focus-visible:ring-accent/30 inline-flex items-center justify-center gap-2 font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed',
+        'focus-visible:ring-accent/30 inline-flex items-center justify-center gap-2 font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed',
         variantClasses[variant],
         sizeClasses[size],
         className

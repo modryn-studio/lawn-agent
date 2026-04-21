@@ -41,7 +41,7 @@ export default function ZipScreen({ onSubmit }: ZipScreenProps) {
             placeholder="00000"
             value={zip}
             onChange={(e) => setZip(e.target.value.replace(/\D/g, '').slice(0, 5))}
-            className="text-center text-lg tracking-widest"
+            className="rounded-button text-center text-lg tracking-widest"
           />
         </div>
         <p className="text-muted text-sm">We&apos;ll use this to tell you what your lawn needs.</p>
