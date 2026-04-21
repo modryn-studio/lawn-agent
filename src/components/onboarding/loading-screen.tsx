@@ -25,7 +25,7 @@ interface LoadingScreenProps {
 export default function LoadingScreen({ onLastMessageReady }: LoadingScreenProps) {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
-  const innerTimer = useRef<ReturnType<typeof setTimeout>>(null);
+  const innerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Keep callback ref so the effect doesn't need it as a dependency.
   // useLayoutEffect ensures the ref is current before any post-paint effects fire.
   const onReadyRef = useRef(onLastMessageReady);

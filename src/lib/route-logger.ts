@@ -30,7 +30,7 @@ export function createRouteLogger(routeName: string): RouteLogger {
 
     info(reqId, message, data) {
       if (data && Object.keys(data).length > 0) {
-        console.log(`${tag} [${reqId}] ${message}`, data);
+        console.log(`${tag} [${reqId}] ${message} ${JSON.stringify(data)}`);
       } else {
         console.log(`${tag} [${reqId}] ${message}`);
       }
@@ -38,7 +38,7 @@ export function createRouteLogger(routeName: string): RouteLogger {
 
     warn(reqId, message, data) {
       if (data && Object.keys(data).length > 0) {
-        console.warn(`${tag} [${reqId}] ⚠️  ${message}`, data);
+        console.warn(`${tag} [${reqId}] ⚠️  ${message} ${JSON.stringify(data)}`);
       } else {
         console.warn(`${tag} [${reqId}] ⚠️  ${message}`);
       }
@@ -47,13 +47,14 @@ export function createRouteLogger(routeName: string): RouteLogger {
     end({ reqId, reqStart }, response, data) {
       const elapsed = Date.now() - reqStart;
       const logData = { ...data, elapsedMs: elapsed, status: response.status };
-      console.log(`${tag} [${reqId}] ✅ Done`, logData);
+      console.log(`${tag} [${reqId}] ✅ Done ${JSON.stringify(logData)}`);
       return response;
     },
 
     err({ reqId, reqStart }, error) {
       const elapsed = Date.now() - reqStart;
-      console.error(`${tag} [${reqId}] ❌ Error after ${elapsed}ms:`, error);
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error(`${tag} [${reqId}] ❌ Error after ${elapsed}ms: ${msg}`);
     },
   };
 }

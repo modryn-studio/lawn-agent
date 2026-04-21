@@ -26,8 +26,8 @@ const CRABGRASS_SOIL_TEMP_F = 55;
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface WeatherContext {
-  soilTemp0cm: number; // °F, surface
-  soilTemp6cm: number; // °F, 6cm depth
+  soilTemp0cm: number | null; // °F, surface — null if no readings available for this location
+  soilTemp6cm: number | null; // °F, 6cm depth — null if no readings available
   precipLast3Days: number; // inches
   precipNext3Days: number; // inches
   gddAccumulated: number; // base 32°F since Feb 15
@@ -57,8 +57,10 @@ interface ArchiveResponse {
 
 export async function fetchWeatherContext(lat: string, lng: string): Promise<WeatherContext> {
   const today = new Date();
-  const year = today.getFullYear();
-  const startDate = `${year}-${GDD_SEASON_START_MONTH_DAY}`;
+  // If today is before Feb 15, the season started last year — avoid an inverted date range.
+  const seasonStartThisYear = new Date(today.getFullYear(), 1, 15);
+  const startYear = today < seasonStartThisYear ? today.getFullYear() - 1 : today.getFullYear();
+  const startDate = `${startYear}-${GDD_SEASON_START_MONTH_DAY}`;
   const endDate = today.toISOString().slice(0, 10);
 
   const forecastUrl =
@@ -123,11 +125,22 @@ export async function fetchWeatherContext(lat: string, lng: string): Promise<Wea
 
 export function serializeWeatherContext(ctx: WeatherContext): string {
   const gddWindow = gddWindowLabel(ctx.gddAccumulated);
-  const germination = ctx.soilTemp0cm >= CRABGRASS_SOIL_TEMP_F ? 'TRIGGERED' : 'NOT YET TRIGGERED';
+
+  const soilTempLine =
+    ctx.soilTemp0cm != null && ctx.soilTemp6cm != null
+      ? `- Soil temperature: ${ctx.soilTemp0cm.toFixed(0)}°F surface, ${ctx.soilTemp6cm.toFixed(0)}°F at 6cm depth`
+      : '- Soil temperature: unavailable for this location';
+
+  const germination =
+    ctx.soilTemp0cm == null
+      ? 'UNKNOWN'
+      : ctx.soilTemp0cm >= CRABGRASS_SOIL_TEMP_F
+        ? 'TRIGGERED'
+        : 'NOT YET TRIGGERED';
 
   return [
     'LIVE WEATHER CONDITIONS (Open-Meteo, use these as facts):',
-    `- Soil temperature: ${ctx.soilTemp0cm.toFixed(0)}°F surface, ${ctx.soilTemp6cm.toFixed(0)}°F at 6cm depth`,
+    soilTempLine,
     `- Rain last 3 days: ${ctx.precipLast3Days.toFixed(2)} in`,
     `- Rain forecast next 3 days: ${ctx.precipNext3Days.toFixed(2)} in`,
     `- Pre-emergent window: ${gddWindow} (${ctx.gddAccumulated} GDD accumulated base 32°F since Feb 15; crabgrass window is 250–500 GDD)`,
@@ -138,12 +151,12 @@ export function serializeWeatherContext(ctx: WeatherContext): string {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function latestNonNull(values: (number | null)[]): number {
+function latestNonNull(values: (number | null)[]): number | null {
   for (let i = values.length - 1; i >= 0; i--) {
     const v = values[i];
     if (v != null) return v;
   }
-  throw new Error('No non-null values in hourly series');
+  return null; // Some locations (coastal, high-altitude) have no soil monitoring
 }
 
 function sumRange(values: (number | null)[], start: number, end: number): number {

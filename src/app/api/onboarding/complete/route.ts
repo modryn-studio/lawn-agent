@@ -66,6 +66,25 @@ export async function POST(req: Request): Promise<Response> {
     // manually (yard_properties and proposals cascade on delete).
     // TODO: Migrate to a pooled connection with BEGIN/COMMIT when volume warrants it.
 
+    // Idempotency guard: if a property already exists for this user (e.g. network
+    // retry after a successful write), return the existing IDs and skip re-insertion.
+    const existing = await sql`
+      SELECT p.id as property_id, pr.id as proposal_id
+      FROM properties p
+      LEFT JOIN proposals pr ON pr.property_id = p.id
+      WHERE p.user_id = ${userId}
+      LIMIT 1
+    `;
+    if (existing[0]) {
+      log.info(ctx.reqId, 'Property already exists, skipping re-insert (idempotent retry)', {
+        propertyId: existing[0].property_id,
+      });
+      return log.end(
+        ctx,
+        Response.json({ ok: true, propertyId: existing[0].property_id, proposalId: existing[0].proposal_id })
+      );
+    }
+
     // 1. Create property
     const [property] = await sql`
       INSERT INTO properties (user_id, address, lat, lng)

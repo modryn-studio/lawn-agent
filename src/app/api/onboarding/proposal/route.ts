@@ -45,6 +45,7 @@ export async function POST(req: Request): Promise<Response> {
 
     // Resolve USDA hardiness zone from zip
     let zoneData: PhzmapiResponse;
+    const zoneStart = Date.now();
     try {
       const res = await fetch(`https://phzmapi.org/${zip}.json`);
       if (!res.ok) {
@@ -68,15 +69,30 @@ export async function POST(req: Request): Promise<Response> {
         )
       );
     }
+    const zoneMs = Date.now() - zoneStart;
+
+    // Validate the shape before deep access — phzmapi.org returns 200 for edge cases
+    // with missing or malformed coordinates, and the cast above doesn't protect us.
+    if (!zoneData?.zone || !zoneData?.coordinates?.lat || !zoneData?.coordinates?.lon) {
+      log.warn(ctx.reqId, 'USDA API returned unexpected shape', { body: zoneData });
+      return log.end(
+        ctx,
+        Response.json(
+          { error: 'Could not look up your area. Check the zip code and try again.' },
+          { status: 422 }
+        )
+      );
+    }
 
     const { zone, coordinates } = zoneData;
     const lat = String(coordinates.lat);
     const lng = String(coordinates.lon);
 
-    log.info(ctx.reqId, 'Zone resolved', { zone, lat, lng });
+    log.info(ctx.reqId, 'Zone resolved', { zone, lat, lng, zoneMs });
 
     // Fetch weather in parallel with (synchronous) attribute inference.
     // Weather failure is non-fatal — we warn and fall back to a weather-less prompt.
+    const weatherStart = Date.now();
     const [inferred, weatherCtx] = await Promise.all([
       Promise.resolve(inferAttributesFromZone(zone, lat, lng)),
       fetchWeatherContext(lat, lng).catch((error) => {
@@ -84,6 +100,7 @@ export async function POST(req: Request): Promise<Response> {
         return null;
       }),
     ]);
+    const weatherMs = Date.now() - weatherStart;
 
     const attrs = inferred.map(toAttributeContext);
     const contextBlock = buildContextBlockFromAttributes(attrs);
@@ -95,6 +112,7 @@ export async function POST(req: Request): Promise<Response> {
       total: contextBlock.totalAttributes,
       maturity: contextBlock.dataMaturity,
       attributes: attrs.map((a) => `${a.key}=${a.value}`),
+      weatherMs,
       weather: weatherCtx
         ? {
             soilTemp0cm: weatherCtx.soilTemp0cm,

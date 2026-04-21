@@ -45,9 +45,9 @@ export async function POST(req: Request): Promise<Response> {
       VALUES (${email}, ${country}, ${source}, ${zip})
       ON CONFLICT (email)
       DO UPDATE SET
-        country = EXCLUDED.country,
-        source  = EXCLUDED.source,
-        zip     = COALESCE(EXCLUDED.zip, waitlist.zip)
+        country = COALESCE(waitlist.country, EXCLUDED.country),
+        source  = COALESCE(waitlist.source,  EXCLUDED.source),
+        zip     = COALESCE(waitlist.zip,     EXCLUDED.zip)
       RETURNING id, email, country, source, zip, created_at
     `;
 

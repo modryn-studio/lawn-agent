@@ -31,12 +31,17 @@ function storeOnboardingData(data: {
   lat: string;
   lng: string;
 }) {
-  sessionStorage.setItem(SK.proposal, JSON.stringify(data.proposal));
-  sessionStorage.setItem(SK.attributes, JSON.stringify(data.attributes));
-  sessionStorage.setItem(SK.zip, data.zip);
-  sessionStorage.setItem(SK.zone, data.zone);
-  sessionStorage.setItem(SK.lat, data.lat);
-  sessionStorage.setItem(SK.lng, data.lng);
+  try {
+    sessionStorage.setItem(SK.proposal, JSON.stringify(data.proposal));
+    sessionStorage.setItem(SK.attributes, JSON.stringify(data.attributes));
+    sessionStorage.setItem(SK.zip, data.zip);
+    sessionStorage.setItem(SK.zone, data.zone);
+    sessionStorage.setItem(SK.lat, data.lat);
+    sessionStorage.setItem(SK.lng, data.lng);
+  } catch {
+    // Storage unavailable (private mode, quota exceeded) — data stays in memory only.
+    // The onboarding flow works without sessionStorage; auth redirect recovery will fail.
+  }
 }
 
 function loadOnboardingData() {
@@ -62,13 +67,20 @@ function loadOnboardingData() {
 }
 
 function clearOnboardingData() {
-  Object.values(SK).forEach((k) => sessionStorage.removeItem(k));
+  try {
+    Object.values(SK).forEach((k) => sessionStorage.removeItem(k));
+  } catch {
+    // Ignore — if storage wasn’t writable, there’s nothing to clear
+  }
 }
 
 export default function OnboardingContent() {
   const router = useRouter();
   const session = authClient.useSession();
   const mountHandled = useRef(false);
+  // Tracks whether the initial session check has resolved at least once.
+  // After that, subsequent isPending flickers (tab refocus) don't blank the UI.
+  const sessionReadyOnce = useRef(false);
 
   const [step, setStep] = useState<Step>('zip');
   const [proposal, setProposal] = useState<ProposalContent | null>(null);
@@ -235,12 +247,16 @@ export default function OnboardingContent() {
       setSignupError(result.error.message || 'Sign up failed. Try again.');
       return;
     }
+    if (!proposal) {
+      setSignupError('Something went wrong. Try again.');
+      return;
+    }
     // Sign-up successful — session is now active. Complete onboarding.
     // 'confirmation' is the handshake beat; write runs concurrently with the 2s timer.
     confirmWriteDoneRef.current = false;
     confirmBeatDoneRef.current = false;
     setStep('confirmation');
-    completeOnboarding({ proposal: proposal!, attributes, zip, zone, lat, lng });
+    completeOnboarding({ proposal, attributes, zip, zone, lat, lng });
   }
 
   // ── Pass handler ───────────────────────────────────────────────────────────
@@ -258,9 +274,12 @@ export default function OnboardingContent() {
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
-  if (session.isPending) {
-    return null; // Don't flash UI while checking auth state
+  // Only blank the UI during the very first session check (before sessionReadyOnce).
+  // After that, subsequent isPending flickers (tab refocus re-fetches) are ignored.
+  if (session.isPending && !sessionReadyOnce.current) {
+    return null; // Don't flash UI while checking auth state on initial load
   }
+  sessionReadyOnce.current = true;
 
   switch (step) {
     case 'zip':
