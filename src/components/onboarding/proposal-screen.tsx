@@ -34,7 +34,6 @@ export default function ProposalScreen({
           <p className="text-muted mb-4 text-xs tracking-widest uppercase">Zone {zone}</p>
           <p className="text-text text-base leading-snug font-medium">{proposal.title}</p>
           <p className="text-text mt-3 text-[15px] leading-relaxed">{proposal.summary}</p>
-          <p className="text-muted mt-2 text-sm">{proposal.timing}</p>
           {proposal.product_suggestion && (
             <p className="text-accent mt-6 text-sm">{proposal.product_suggestion}</p>
           )}
