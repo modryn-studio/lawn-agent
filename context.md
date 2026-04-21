@@ -42,6 +42,7 @@ Landing page → email capture (early access) → onboarding (address input) →
 ## Stack Additions
 
 - `@neondatabase/serverless` — Neon serverless Postgres (yard_properties, property_interactions, proposals tables per Michelle's schema)
+- `@neondatabase/auth@0.2.0-beta.1` — Neon Auth SDK (Better Auth). Server: `createNeonAuth()` in `src/lib/auth/server.ts`. Client: `createAuthClient()` in `src/lib/auth/client.ts`. Auth proxy at `app/api/auth/[...path]/route.ts` uses a `withCanonicalOrigin()` wrapper — do not remove it (Node.js 22 undici bug workaround). `trusted_origins` lives in `neon_auth.project_config` in the DB. `NEXT_PUBLIC_SITE_URL=https://lawnagent.app` required in Vercel env.
 - `@ai-sdk/anthropic` + `ai` — proposal generation via claude-sonnet-4-6 (generateObject)
 - `zod` — request body validation in API routes
 - phzmapi.org — USDA zone API (live). `GET https://phzmapi.org/{zip}.json` → `{ zone, temperature_range, coordinates: { lat, lon } }`
@@ -67,6 +68,7 @@ Landing page → email capture (early access) → onboarding (address input) →
 - `/proposal/[id]` — Individual proposal. Full detail, approve/pass, deep link to pre-filled cart, completion confirmation.
 - `/privacy` — Privacy policy.
 - `/terms` — Terms of service.
+- `/api/auth/[...path]` — Auth proxy. Forwards requests to Neon Auth via `withCanonicalOrigin()` wrapper. Do not simplify to a plain re-export.
 - `/api/proposals` — Proposal generation endpoint. Pulls confidence-weighted yard context, calls Anthropic, returns structured proposal.
 - `/api/yard` — Yard properties CRUD. Versioned rows, source + confidence tracking per Michelle's schema.
 - `/api/interactions` — Log user events: confirm, correct, log, approve, pass, complete.

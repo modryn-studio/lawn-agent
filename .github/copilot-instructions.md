@@ -27,6 +27,7 @@ basePath:
 - `resend` — transactional email
 - `nodemailer` — email delivery
 - `@neondatabase/serverless` — Neon serverless Postgres (project: `blue-rain-41930180`, `aws-us-east-1`, Postgres 17)
+- `@neondatabase/auth@0.2.0-beta.1` — Neon Auth SDK (Better Auth under the hood). Server: `createNeonAuth()` in `src/lib/auth/server.ts`. Client: `createAuthClient()` in `src/lib/auth/client.ts`. Auth proxy at `app/api/auth/[...path]/route.ts`. **Important:** The route uses a `withCanonicalOrigin()` wrapper that rewrites the `Origin` header to `NEXT_PUBLIC_SITE_URL` on every proxied request — this is required because Node.js 22's `fetch` (undici) adds `sec-fetch-mode: cors` headers that cause Neon Auth to reject requests with `INVALID_ORIGIN`. `trusted_origins` is configured in `neon_auth.project_config` in the Neon DB (not in code) — currently set to `["https://lawnagent.app", "https://www.lawnagent.app"]`. `NEXT_PUBLIC_SITE_URL=https://lawnagent.app` must be set in Vercel env vars.
 - `@ai-sdk/anthropic` + `ai` — proposal generation via `claude-sonnet-4-6` (AI SDK `generateObject`)
 - **phzmapi.org** — USDA zone API (live). `GET https://phzmapi.org/{zip}.json` → `{ zone, temperature_range, coordinates: { lat, lon } }`. Note: field is `lon`, not `lng`.
 - **open-meteo.com** — Weather + soil API (live, no API key). Two endpoints: `api.open-meteo.com/v1/forecast` (soil temps at 0cm/6cm hourly, daily precip, `past_days=3`) and `archive-api.open-meteo.com/v1/archive` (historical daily tmax/tmin for GDD). GDD accumulated base 32°F since Feb 15 (`GDD_SEASON_START = '02-15'`). See `src/lib/weather.ts`. Weather failure is non-fatal — proposal continues without weather block.
@@ -48,6 +49,7 @@ basePath:
 - `/dashboard` → Proposal feed, active recommendations, yard summary.
 - `/profile` → Yard details, assumption corrections, treatment log, confidence labels.
 - `/proposal/[id]` → Individual proposal detail, approve/pass, commerce deep link, completion confirmation.
+- `/api/auth/[...path]` → Auth proxy. Forwards all auth requests to Neon Auth server via `auth.handler()`. Wraps each method with `withCanonicalOrigin()` to normalize the `Origin` header before proxying — required workaround for Node.js 22 undici bug. Do not simplify this back to a plain re-export.
 - `/api/proposals` → Proposal generation. Pulls yard context, calls Anthropic, returns structured proposal.
 - `/api/onboarding/proposal` → Unauthenticated. Zip → zone lookup (phzmapi.org) → attribute inference + weather fetch (Open-Meteo) in parallel → Claude proposal with weather context block injected. Returns `{ ok, proposal, attributes, zone, lat, lng }`.
 - `/api/onboarding/complete` → Authenticated. Writes property + yard_properties + proposals rows. Called after signup redirect.
@@ -65,7 +67,7 @@ basePath:
 
 **Visual Rules:**
 
-- Colors: Accent `#4A7C59` (field green), Secondary `#C4A35A` (dry grass gold — use sparingly, tips toward harvest festival at small sizes), Background `#FAF8F4` (warm off-white), Text `#1A1A1A` (near-black), Muted `#9A9590` (warm gray)
+- Colors: Accent `#4A7C59` (field green), Secondary `#C4A35A` (dry grass gold — use sparingly, tips toward harvest festival at small sizes), Background `#FAF8F4` (warm off-white), Text `#1A1A1A` (near-black), Muted `#9A9590` (warm gray), Surface `#F0EDE8` (warm panel — card/panel backgrounds), Border `#E8E4DE` (warm border — cards, attribute cards, all card containers)
 - Fonts: Playfair Display (headings) + Inter (body/UI)
 - Motion: State change only. Never for delight. No animations that run on load.
 - Button border radius: 6px (`rounded-button`). Not pill. Applied consistently across all buttons and inputs.
