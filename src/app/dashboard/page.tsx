@@ -105,27 +105,29 @@ export default async function DashboardPage() {
             Your yard.
           </h1>
 
-          {proposal && proposalId ? (
-            <div className="space-y-6">
-              {/* Proposal */}
+          <div className="space-y-6">
+            {/* Proposal — only when pending */}
+            {proposal && proposalId ? (
               <DashboardProposalCard proposal={proposal} proposalId={proposalId} zone={zone} />
+            ) : (
+              <p className="text-muted text-sm">
+                Your agent is watching. We&apos;ll surface the next action when the window opens.
+              </p>
+            )}
 
-              {/* Attributes — directly below, no heading. Proximity carries the relationship. */}
-              {attributes.length > 0 && (
-                <ul className="space-y-4">
-                  {attributes.map((attr) => (
-                    <AttributeCard
-                      key={attr.key}
-                      label={displayLabel(attr.key, attr.value)}
-                      sublabel={sublabel(attr.key, attr.confidenceLabel, attr.source)}
-                    />
-                  ))}
-                </ul>
-              )}
-            </div>
-          ) : (
-            <p className="text-muted text-sm">No active proposals. Check back soon.</p>
-          )}
+            {/* Attributes — always visible. The yard profile persists independent of proposal state. */}
+            {attributes.length > 0 && (
+              <ul className="space-y-4">
+                {attributes.map((attr) => (
+                  <AttributeCard
+                    key={attr.key}
+                    label={displayLabel(attr.key, attr.value)}
+                    sublabel={sublabel(attr.key, attr.confidenceLabel, attr.source)}
+                  />
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </main>
     </div>
