@@ -9,13 +9,18 @@ interface ProfileScreenProps {
   onContinue: () => void;
 }
 
+// Uppercases first letter of each word, including after hyphens:
+// "cool-season grass" → "Cool-Season Grass"
+function toTitleCase(str: string): string {
+  return str.replace(/(?:^|[\s-])(\w)/g, (match) => match.toUpperCase());
+}
+
 function displayLabel(attr: InferredAttribute): string {
-  const val = attr.value.charAt(0).toUpperCase() + attr.value.slice(1);
   switch (attr.key) {
     case 'grass_type':
-      return val;
+      return toTitleCase(attr.value);
     case 'soil_type':
-      return val;
+      return toTitleCase(attr.value);
     case 'hardiness_zone':
       return `USDA Zone ${attr.value}`;
     case 'soil_ph':
@@ -39,12 +44,16 @@ function sourceLabel(attr: InferredAttribute): string {
 }
 
 // Which attributes to show on the profile reveal screen
-const DISPLAY_KEYS = ['grass_type', 'soil_type', 'hardiness_zone'] as const;
+const DISPLAY_KEYS = ['hardiness_zone', 'grass_type', 'soil_type'] as const;
 
 export default function ProfileScreen({ attributes, onContinue }: ProfileScreenProps) {
-  const displayAttrs = attributes.filter((a) =>
-    (DISPLAY_KEYS as readonly string[]).includes(a.key)
-  );
+  const displayAttrs = attributes
+    .filter((a) => (DISPLAY_KEYS as readonly string[]).includes(a.key))
+    .sort(
+      (a, b) =>
+        DISPLAY_KEYS.indexOf(a.key as (typeof DISPLAY_KEYS)[number]) -
+        DISPLAY_KEYS.indexOf(b.key as (typeof DISPLAY_KEYS)[number])
+    );
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 sm:px-6">

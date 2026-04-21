@@ -81,7 +81,11 @@ export async function POST(req: Request): Promise<Response> {
       });
       return log.end(
         ctx,
-        Response.json({ ok: true, propertyId: existing[0].property_id, proposalId: existing[0].proposal_id })
+        Response.json({
+          ok: true,
+          propertyId: existing[0].property_id,
+          proposalId: existing[0].proposal_id,
+        })
       );
     }
 

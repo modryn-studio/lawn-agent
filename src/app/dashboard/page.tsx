@@ -21,12 +21,17 @@ export const metadata: Metadata = {
 };
 
 // Display helpers — same logic as ProfileScreen
-const DISPLAY_KEYS = ['grass_type', 'soil_type', 'hardiness_zone'] as const;
+// Uppercases first letter of each word, including after hyphens:
+// "cool-season grass" → "Cool-Season Grass"
+function toTitleCase(str: string): string {
+  return str.replace(/(?:^|[\s-])(\w)/g, (match) => match.toUpperCase());
+}
+
+const DISPLAY_KEYS = ['hardiness_zone', 'grass_type', 'soil_type'] as const;
 
 function displayLabel(key: string, value: string): string {
-  const val = value.charAt(0).toUpperCase() + value.slice(1);
   if (key === 'hardiness_zone') return `USDA Zone ${value}`;
-  return val;
+  return toTitleCase(value);
 }
 
 function sublabel(key: string, confidenceLabel: string, source: string): string {
@@ -76,7 +81,12 @@ export default async function DashboardPage() {
       value: r.attribute_value as string,
       confidenceLabel: r.confidence_label as string,
       source: r.source as string,
-    }));
+    }))
+    .sort(
+      (a, b) =>
+        DISPLAY_KEYS.indexOf(a.key as (typeof DISPLAY_KEYS)[number]) -
+        DISPLAY_KEYS.indexOf(b.key as (typeof DISPLAY_KEYS)[number])
+    );
 
   return (
     <main className="flex min-h-dvh flex-col px-4 py-12 sm:px-6 sm:py-16">
@@ -93,6 +103,7 @@ export default async function DashboardPage() {
                 <p className="text-text text-base leading-snug font-medium">{proposal.title}</p>
               )}
               <p className="text-text mt-3 text-[15px] leading-relaxed">{proposal.summary}</p>
+              <p className="text-muted mt-2 text-sm">{proposal.timing}</p>
               {proposal.product_suggestion && (
                 <p className="text-accent mt-4 text-sm">{proposal.product_suggestion}</p>
               )}
