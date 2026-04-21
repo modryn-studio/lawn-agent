@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 import { site } from '@/config/site';
+import { auth } from '@/lib/auth/server';
+import { sql } from '@/lib/db';
 import OnboardingContent from './page-content';
 
 export const metadata: Metadata = {
@@ -23,7 +26,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function OnboardingPage() {
+export default async function OnboardingPage() {
+  // Onboarding is a one-way door. Auth'd users with an existing property go straight to dashboard.
+  const { data: session } = await auth.getSession();
+  if (session?.user) {
+    const [property] = await sql`
+      SELECT id FROM properties WHERE user_id = ${session.user.id} LIMIT 1
+    `;
+    if (property) redirect('/dashboard');
+  }
+
   return (
     <main className="bg-bg min-h-dvh">
       <Suspense>
