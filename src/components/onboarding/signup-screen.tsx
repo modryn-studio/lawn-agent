@@ -93,7 +93,7 @@ export default function SignupScreen({ onSignUp, onBack, error }: SignupScreenPr
           type="button"
           variant="ghost"
           onClick={onBack}
-          className="rounded-button text-muted mt-4 w-full text-sm hover:underline"
+          className="rounded-button text-muted mt-4 w-full text-sm"
         >
           Back to proposal
         </Button>
