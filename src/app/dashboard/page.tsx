@@ -5,15 +5,18 @@ import { sql } from '@/lib/db';
 import { site } from '@/config/site';
 import { AttributeCard } from '@/components/ui/attribute-card';
 import type { ProposalContent } from '@/lib/proposals';
+import { DashboardProposalCard } from '@/components/dashboard-proposal-card';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: `Dashboard | ${site.name}`,
-  description: 'Your current yard proposal and inferred yard profile.',
+  title: `Active Lawn Proposals and Yard Profile | ${site.name}`,
+  description:
+    'See your active lawn proposal and yard profile. Approve treatments, track what you have done, and let Lawn Agent build a picture of your yard over time.',
   openGraph: {
-    title: `Dashboard | ${site.name}`,
-    description: 'Your current yard proposal and inferred yard profile.',
+    title: `Active Lawn Proposals and Yard Profile | ${site.name}`,
+    description:
+      'See your active lawn proposal and yard profile. Approve treatments, track what you have done, and let Lawn Agent build a picture of your yard over time.',
     images: [{ url: '/og-image.png', width: 1200, height: 630, alt: site.name }],
     siteName: site.name,
   },
@@ -57,7 +60,7 @@ export default async function DashboardPage() {
   // Parallel: fetch pending proposal + current yard attributes
   const [proposalRows, attributeRows] = await Promise.all([
     sql`
-      SELECT content
+      SELECT id, content
       FROM proposals
       WHERE property_id = ${propertyId}
         AND status = 'pending'
@@ -72,7 +75,9 @@ export default async function DashboardPage() {
     `,
   ]);
 
-  const proposal = proposalRows[0] ? (proposalRows[0].content as ProposalContent) : null;
+  const proposalRow = proposalRows[0] ?? null;
+  const proposal = proposalRow ? (proposalRow.content as ProposalContent) : null;
+  const proposalId = proposalRow ? (proposalRow.id as string) : null;
 
   const attributes = attributeRows
     .filter((r) => (DISPLAY_KEYS as readonly string[]).includes(r.attribute_key as string))
@@ -97,32 +102,10 @@ export default async function DashboardPage() {
           Your yard.
         </h1>
 
-        {proposal ? (
+        {proposal && proposalId ? (
           <div className="space-y-6">
             {/* Proposal */}
-            <div className="border-border rounded-lg border bg-white p-5 sm:p-8">
-              {zone && (
-                <p className="text-muted mb-4 text-xs tracking-widest uppercase">Zone {zone}</p>
-              )}
-              {proposal.title && (
-                <p className="text-text text-base leading-snug font-medium">{proposal.title}</p>
-              )}
-              <p className="text-text mt-3 text-[15px] leading-relaxed">{proposal.summary}</p>
-              <p className="text-muted mt-2 text-sm">{proposal.timing}</p>
-              {proposal.product_suggestion && (
-                <p className="text-accent mt-6 text-sm">{proposal.product_suggestion}</p>
-              )}
-              {proposal.commerce_url && (
-                <a
-                  href={proposal.commerce_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-accent mt-4 block py-2 text-sm underline-offset-2 hover:underline"
-                >
-                  What to buy →
-                </a>
-              )}
-            </div>
+            <DashboardProposalCard proposal={proposal} proposalId={proposalId} zone={zone} />
 
             {/* Attributes — directly below, no heading. Proximity carries the relationship. */}
             {attributes.length > 0 && (

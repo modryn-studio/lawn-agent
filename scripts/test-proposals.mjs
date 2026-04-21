@@ -39,7 +39,6 @@ const proposalSchema = z.object({
   priority: z.enum(['high', 'medium', 'low']),
   timing: z.string(),
   product_suggestion: z.string().nullable(),
-  commerce_url: z.string().nullable(),
   estimated_cost_usd: z.number().nullable(),
   attribute_keys_affected: z.array(z.string()),
 });

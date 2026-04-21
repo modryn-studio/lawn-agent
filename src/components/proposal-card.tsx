@@ -1,8 +1,8 @@
 export default function ProposalCard() {
   return (
-    <section className="bg-bg px-8 pt-16 pb-0 md:px-16 md:pt-20">
+    <section className="bg-bg px-4 pt-16 pb-0 sm:px-6 md:px-16 md:pt-20">
       <div className="mx-auto max-w-120">
-        <div className="border-border rounded-lg border bg-white p-8">
+        <div className="border-border rounded-lg border bg-white p-5 sm:p-8">
           <p className="text-muted mb-4 text-xs tracking-widest uppercase">
             Example yard — Zone 6a, Central US
           </p>

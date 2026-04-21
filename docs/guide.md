@@ -35,14 +35,15 @@ Onboarding is built end-to-end. After completing onboarding, users land on the d
 
 After onboarding, authenticated users land on `/dashboard`. Shows:
 
-- Current proposal (zone label, title, summary, timing, product suggestion)
+- Current proposal (zone label, title, summary, timing, product suggestion as Amazon search link)
+- "I did this" button — tapping it marks the proposal `done`, logs a `complete` interaction, and flips the card to a confirmation state ("Fertilizer applied. / Your agent is watching.")
 - Three yard attributes (hardiness zone, grass type, soil type) with confidence labels
 
 ---
 
 ## What's not built yet
 
-Individual proposal pages, profile corrections, commerce deep links, subscription billing.
+Individual proposal pages, profile corrections, subscription billing. Auto-generating the next proposal after completion (issue #10).
 
 ---
 
@@ -60,7 +61,10 @@ Individual proposal pages, profile corrections, commerce deep links, subscriptio
 | `/api/yard`                                    | ✅ Built            |
 | `/api/interactions`                            | ✅ Built            |
 | `/api/proposals`                               | ✅ Built            |
+| `/api/proposals/[id]/complete`                 | ✅ Built            |
 | Dashboard (proposal + yard profile)            | ✅ Built            |
+| Proposal completion loop ("I did this")        | ✅ Built            |
+| Commerce link (Amazon search)                  | ✅ Built            |
 | Feedback widget                                | ⏳ Built, not wired |
 | `/proposal/[id]`                               | ❌ Not built        |
 | Profile corrections                            | ❌ Not built        |

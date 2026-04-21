@@ -4,11 +4,11 @@ import { site } from '@/config/site';
 import Footer from '@/components/footer';
 
 export const metadata: Metadata = {
-  title: `Privacy Policy | ${site.name}`,
+  title: `Privacy Policy — How ${site.name} Handles Your Data`,
   description:
     'Lawn Agent collects only what it needs to generate your lawn proposal. No data sold. No tracking cookies. US zip codes and inferred yard attributes only.',
   openGraph: {
-    title: `Privacy Policy | ${site.name}`,
+    title: `Privacy Policy — How ${site.name} Handles Your Data`,
     description:
       'Lawn Agent collects only what it needs to generate your lawn proposal. No data sold. No tracking cookies.',
     url: `${site.url}/privacy`,
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: `Privacy Policy | ${site.name}`,
+    title: `Privacy Policy — How ${site.name} Handles Your Data`,
     description:
       'Lawn Agent collects only what it needs to generate your lawn proposal. No data sold. No tracking cookies.',
   },

@@ -4,11 +4,11 @@ import { site } from '@/config/site';
 import Footer from '@/components/footer';
 
 export const metadata: Metadata = {
-  title: `Terms of Service | ${site.name}`,
+  title: `${site.name} Terms of Service — Informational Lawn Advice`,
   description:
     'Lawn Agent terms of service. US zip codes only. Proposals are informational, not professional agronomist advice.',
   openGraph: {
-    title: `Terms of Service | ${site.name}`,
+    title: `${site.name} Terms of Service — Informational Lawn Advice`,
     description:
       'Lawn Agent terms of service. US zip codes only. Proposals are informational, not professional agronomist advice.',
     url: `${site.url}/terms`,
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: `Terms of Service | ${site.name}`,
+    title: `${site.name} Terms of Service — Informational Lawn Advice`,
     description:
       'Lawn Agent terms of service. US zip codes only. Proposals are informational, not professional agronomist advice.',
   },

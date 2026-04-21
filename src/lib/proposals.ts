@@ -29,10 +29,6 @@ export const proposalSchema = z.object({
     .string()
     .nullable()
     .describe('Specific product name if applicable, null if no product needed'),
-  commerce_url: z
-    .string()
-    .nullable()
-    .describe('Amazon or home improvement store URL for the product, null if not applicable'),
   estimated_cost_usd: z
     .number()
     .nullable()
@@ -204,8 +200,7 @@ Rules:
 - Write for someone who is not a lawn expert. Plain language only.
 - "Yard" = whole property (emotional). "Lawn" = grass specifically (actionable). Do not collapse. This distinction applies everywhere — never use yard when you mean grass, never use lawn when you mean the whole property.
 - Never use: "powerful", "seamless", "revolutionary", "AI-powered", "next-level", "smart", "intelligent".
-- commerce_url must be a real, working product URL (Amazon, Home Depot, Lowe's). When in doubt, null. A missing link is better than a broken one.
-- Do not hallucinate product names. If you are not confident in a specific product, set product_suggestion and commerce_url to null.
+- Do not hallucinate product names. If you are not confident in a specific product, set product_suggestion to null.
 - If soil_ph is locked and the primary recommendation is pH-sensitive, close the rationale with one sentence explaining why a soil test would sharpen this specific recommendation. Only when the connection is real. Never as a default closer.`;
 
 // Accept an optional pre-computed date string so callers can log the exact value
