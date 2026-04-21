@@ -102,7 +102,7 @@ export default async function DashboardPage() {
             {/* Proposal */}
             <div className="border-border bg-surface rounded-lg border p-5 sm:p-8">
               {zone && (
-                <p className="text-muted mb-4 text-xs uppercase tracking-widest">Zone {zone}</p>
+                <p className="text-muted mb-4 text-xs tracking-widest uppercase">Zone {zone}</p>
               )}
               {proposal.title && (
                 <p className="text-text text-base leading-snug font-medium">{proposal.title}</p>
