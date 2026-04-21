@@ -83,8 +83,8 @@ Used on landing, onboarding proposal screen, and dashboard. Must be identical ac
 
 ```tsx
 <div className="border-border rounded-lg border bg-white p-5 sm:p-8">
-  <p className="text-muted mb-4 text-xs uppercase tracking-widest">Zone {zone}</p>
-  <p className="text-text text-base font-medium leading-snug">{proposal.title}</p>
+  <p className="text-muted mb-4 text-xs tracking-widest uppercase">Zone {zone}</p>
+  <p className="text-text text-base leading-snug font-medium">{proposal.title}</p>
   <p className="text-text mt-3 text-[15px] leading-relaxed">{proposal.summary}</p>
   {/* Dashboard only — timing is contextual intelligence for when to act.
       Not shown on landing or onboarding (complexity before trust). */}

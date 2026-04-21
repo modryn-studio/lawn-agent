@@ -20,7 +20,7 @@ Someone who looked at their patchy lawn on a Saturday and decided they wanted it
 - Color mode: Light mode only. No dark mode toggle.
 - Fonts: Playfair Display (headings) + Inter (body/UI)
 - Motion: State change only. Never for delight. No animations that run on load.
-- Button border radius: 6px (`rounded-button`). Not pill. Applied consistently across all buttons and inputs.
+- Button border radius: 6px (`rounded-button`). Not pill. Set at the **call site** via `className="rounded-button"` on every `<Button>` and `<Input>`. Never set inside the primitive base class (`button.tsx`, `input.tsx`). Card/container border radius is 8px (`rounded-lg`) — these two values are distinct and must not be mixed.
 - Avoid: Gradients, pill shapes, decorative shadows, Kelly green (`#00A651` territory), corporate blue-green (TruGreen territory), sage-and-sand palette (Sunday territory), leaf icons, grass icons, house icons — fully commoditized in this category.
 
 ---
@@ -34,7 +34,7 @@ Someone who looked at their patchy lawn on a Saturday and decided they wanted it
 | Background | `#FAF8F4` | Warm off-white. Never pure white.                                                                                    |
 | Text       | `#1A1A1A` | Near-black. All primary copy.                                                                                        |
 | Muted      | `#9A9590` | Warm gray. Labels, metadata, secondary information.                                                                  |
-| Surface    | `#F0EDE8` | Warm panel. Card and panel backgrounds.                                                                              |
+| Surface    | `#F0EDE8` | Warm panel. Page section backgrounds only (e.g. human-section). Cards use `bg-white`, not Surface.                   |
 | Border     | `#E8E4DE` | Warm border. Proposal cards, attribute cards, all card containers. Dieter spec.                                      |
 
 Color rules:

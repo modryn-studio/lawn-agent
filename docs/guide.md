@@ -8,19 +8,17 @@ _Updated April 21, 2026._
 
 Visit [lawnagent.app](https://lawnagent.app).
 
-The landing page has five sections: hero, an example proposal card, how it works, a human section, and a second email capture. No login. No dashboard.
+The landing page has five sections: hero, an example proposal card, how it works, a human section, and an email capture. Both CTAs go directly to onboarding.
 
-Onboarding is built. Users can enter their zip code, see a generated proposal, create an account, and land on a profile reveal screen. The dashboard route exists but has no content yet.
+Onboarding is built end-to-end. After completing onboarding, users land on the dashboard — which shows their current proposal and inferred yard profile.
 
 ---
 
 ## Getting started
 
-Both CTAs on the landing page go directly to onboarding.
-
 1. Go to [lawnagent.app](https://lawnagent.app)
 2. Click **I want a better yard**
-3. Enter your zip code and get a proposal
+3. Enter your zip code and see a generated proposal
 
 ---
 
@@ -28,14 +26,23 @@ Both CTAs on the landing page go directly to onboarding.
 
 1. `/onboarding` — Enter zip code
 2. Proposal generated via `/api/onboarding/proposal` (zone lookup + live weather/soil data + Claude)
-3. Approve → create account via BetterAuth → `/api/onboarding/complete` writes property, yard attributes, and proposal to DB → brief confirmation ("Your proposal is saved.") → profile reveal
+3. Approve → create account → `/api/onboarding/complete` writes property, yard attributes, and proposal to DB → profile reveal
 4. Pass → optional email capture → back to landing page
+
+---
+
+## Dashboard
+
+After onboarding, authenticated users land on `/dashboard`. Shows:
+
+- Current proposal (zone label, title, summary, timing, product suggestion)
+- Three yard attributes (hardiness zone, grass type, soil type) with confidence labels
 
 ---
 
 ## What's not built yet
 
-Dashboard, individual proposal pages, profile corrections, commerce deep links, subscription billing.
+Individual proposal pages, profile corrections, commerce deep links, subscription billing.
 
 ---
 
@@ -53,8 +60,8 @@ Dashboard, individual proposal pages, profile corrections, commerce deep links, 
 | `/api/yard`                                    | ✅ Built            |
 | `/api/interactions`                            | ✅ Built            |
 | `/api/proposals`                               | ✅ Built            |
+| Dashboard (proposal + yard profile)            | ✅ Built            |
 | Feedback widget                                | ⏳ Built, not wired |
-| Dashboard                                      | ❌ Not built        |
 | `/proposal/[id]`                               | ❌ Not built        |
 | Profile corrections                            | ❌ Not built        |
 | Commerce deep links                            | ❌ Not built        |
