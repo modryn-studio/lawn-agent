@@ -4,19 +4,35 @@ import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
 import { site } from '@/config/site';
 import { after } from 'next/server';
+import { z } from 'zod';
 
 const log = createRouteLogger('feedback');
 
-type FeedbackType = 'newsletter' | 'feedback' | 'bug';
+// Discriminated union: newsletter requires a valid email, feedback/bug do not.
+// This makes the constraint structural — the newsletter branch has email: string,
+// not email: string | undefined, so no non-null assertions needed downstream.
+const bodySchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('newsletter'),
+    email: z.string().email(),
+    message: z.string().optional(),
+    page: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal('feedback'),
+    email: z.string().email().optional(),
+    message: z.string().optional(),
+    page: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal('bug'),
+    email: z.string().email().optional(),
+    message: z.string().optional(),
+    page: z.string().optional(),
+  }),
+]);
 
-interface FeedbackBody {
-  type: FeedbackType;
-  email?: string;
-  message?: string;
-  page?: string;
-}
-
-const VALID_TYPES: FeedbackType[] = ['newsletter', 'feedback', 'bug'];
+type FeedbackBody = z.infer<typeof bodySchema>;
 
 function escapeHtml(str: string): string {
   return str
@@ -55,23 +71,14 @@ export async function POST(req: Request): Promise<Response> {
   const ctx = log.begin();
 
   try {
-    const body = (await req.json()) as FeedbackBody;
+    const parsed = bodySchema.safeParse(await req.json());
+    if (!parsed.success) {
+      log.warn(ctx.reqId, 'Validation failed', { errors: parsed.error.flatten() });
+      return log.end(ctx, Response.json({ error: 'Invalid request' }, { status: 400 }));
+    }
+
+    const body = parsed.data;
     log.info(ctx.reqId, 'Request received', { type: body.type, email: body.email });
-
-    // Validate type
-    if (!body.type || !VALID_TYPES.includes(body.type)) {
-      log.warn(ctx.reqId, 'Invalid type', { type: body.type });
-      return log.end(ctx, Response.json({ error: 'Invalid type' }, { status: 400 }));
-    }
-
-    // Validate email — required for newsletter, optional for feedback/bug
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const hasEmail = body.email && emailRegex.test(body.email);
-
-    if (body.type === 'newsletter' && !hasEmail) {
-      log.warn(ctx.reqId, 'Invalid email for newsletter', { email: body.email });
-      return log.end(ctx, Response.json({ error: 'Valid email required' }, { status: 400 }));
-    }
 
     // Check env vars
     const gmailUser = env.GMAIL_USER;
@@ -85,7 +92,7 @@ export async function POST(req: Request): Promise<Response> {
 
     // Respond immediately — fire Gmail + Resend in parallel after the response
     after(async () => {
-      const subjectMap: Record<FeedbackType, string> = {
+      const subjectMap: Record<FeedbackBody['type'], string> = {
         newsletter: `📬 [${site.name}] New signup: ${body.email}`,
         feedback: `💬 [${site.name}] Feedback${body.email ? ` from ${body.email}` : ''}`,
         bug: `🐛 [${site.name}] Bug report${body.email ? ` from ${body.email}` : ''}`,
@@ -98,7 +105,7 @@ export async function POST(req: Request): Promise<Response> {
           to: feedbackTo,
           subject: subjectMap[body.type],
           html: buildHtml(body),
-          ...(hasEmail && { replyTo: body.email }),
+          ...(body.email && { replyTo: body.email }),
         })
         .then(() => log.info(ctx.reqId, 'Email sent', { to: feedbackTo }))
         .catch((err) => log.warn(ctx.reqId, 'Email send failed', { error: err }));
@@ -115,7 +122,7 @@ export async function POST(req: Request): Promise<Response> {
               const segmentId = env.RESEND_SEGMENT_ID;
               return resend.contacts
                 .create({
-                  email: body.email!,
+                  email: body.email,
                   unsubscribed: false,
                   ...(segmentId && { segments: [{ id: segmentId }] }),
                   properties: { source: site.name },
