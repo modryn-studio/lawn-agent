@@ -64,7 +64,12 @@ export default function ProfileScreen({ attributes, onContinue }: ProfileScreenP
 
         <ul className="space-y-4">
           {displayAttrs.map((attr) => (
-            <AttributeCard key={attr.key} label={displayLabel(attr)} sublabel={sourceLabel(attr)} bg="bg-white" />
+            <AttributeCard
+              key={attr.key}
+              label={displayLabel(attr)}
+              sublabel={sourceLabel(attr)}
+              bg="bg-white"
+            />
           ))}
         </ul>
 

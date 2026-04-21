@@ -30,7 +30,7 @@ export default function SignupScreen({ onSignUp, onBack, error }: SignupScreenPr
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 sm:px-6">
       <div className="w-full max-w-sm space-y-6">
-        <h1 className="font-heading text-text text-2xl font-normal tracking-tight">
+        <h1 className="font-heading text-text text-3xl font-normal tracking-tight md:text-[40px]">
           Next: what to buy and where to get it.
         </h1>
 
@@ -89,13 +89,14 @@ export default function SignupScreen({ onSignUp, onBack, error }: SignupScreenPr
           </Button>
         </form>
 
-        <button
+        <Button
           type="button"
+          variant="ghost"
           onClick={onBack}
-          className="text-muted mt-4 block w-full text-center text-sm hover:underline"
+          className="mt-4 w-full text-sm text-muted hover:underline"
         >
           Back to proposal
-        </button>
+        </Button>
       </div>
     </div>
   );

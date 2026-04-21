@@ -88,6 +88,8 @@ export default async function DashboardPage() {
         DISPLAY_KEYS.indexOf(b.key as (typeof DISPLAY_KEYS)[number])
     );
 
+  const zone = attributes.find((a) => a.key === 'hardiness_zone')?.value ?? null;
+
   return (
     <main className="flex min-h-dvh flex-col px-4 py-12 sm:px-6 sm:py-16">
       <div className="mx-auto w-full max-w-md space-y-8">
@@ -99,13 +101,16 @@ export default async function DashboardPage() {
           <div className="space-y-6">
             {/* Proposal */}
             <div className="border-border bg-surface rounded-lg border p-5 sm:p-8">
+              {zone && (
+                <p className="text-muted mb-4 text-xs uppercase tracking-widest">Zone {zone}</p>
+              )}
               {proposal.title && (
                 <p className="text-text text-base leading-snug font-medium">{proposal.title}</p>
               )}
               <p className="text-text mt-3 text-[15px] leading-relaxed">{proposal.summary}</p>
               <p className="text-muted mt-2 text-sm">{proposal.timing}</p>
               {proposal.product_suggestion && (
-                <p className="text-accent mt-4 text-sm">{proposal.product_suggestion}</p>
+                <p className="text-accent mt-6 text-sm">{proposal.product_suggestion}</p>
               )}
               {proposal.commerce_url && (
                 <a
