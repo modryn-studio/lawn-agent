@@ -119,7 +119,7 @@ export async function POST(req: Request): Promise<Response> {
     } = await generateObject({
       model: anthropicClient('claude-sonnet-4-6'),
       schema: proposalSchema,
-      system: buildSystemPrompt(),
+      system: buildSystemPrompt(systemDate),
       prompt: yardContext,
     });
     const claudeMs = Date.now() - claudeStart;

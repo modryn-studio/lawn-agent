@@ -208,11 +208,16 @@ Rules:
 - Do not hallucinate product names. If you are not confident in a specific product, set product_suggestion and commerce_url to null.
 - If soil_ph is locked and the primary recommendation is pH-sensitive, close the rationale with one sentence explaining why a soil test would sharpen this specific recommendation. Only when the connection is real. Never as a default closer.`;
 
-export function buildSystemPrompt(): string {
-  const currentDate = new Date().toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
+// Accept an optional pre-computed date string so callers can log the exact value
+// that gets injected into the prompt — prevents a theoretical mismatch if the
+// request straddles midnight between the log call and this call.
+export function buildSystemPrompt(date?: string): string {
+  const currentDate =
+    date ??
+    new Date().toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
   return SYSTEM_PROMPT.replace('{CURRENT_DATE}', currentDate);
 }

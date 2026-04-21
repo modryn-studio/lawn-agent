@@ -83,12 +83,14 @@ export async function POST(req: Request): Promise<Response> {
     // Check env vars
     const gmailUser = env.GMAIL_USER;
     const gmailPass = env.GMAIL_APP_PASSWORD;
-    const feedbackTo = env.FEEDBACK_TO || gmailUser;
 
     if (!gmailUser || !gmailPass) {
       log.warn(ctx.reqId, 'Gmail credentials not configured');
       return log.end(ctx, Response.json({ error: 'Email service unavailable' }, { status: 503 }));
     }
+
+    // gmailUser is narrowed to string here — feedbackTo is always a string
+    const feedbackTo = env.FEEDBACK_TO || gmailUser;
 
     // Respond immediately — fire Gmail + Resend in parallel after the response
     after(async () => {
