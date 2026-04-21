@@ -14,9 +14,6 @@ export default function ProposalCard() {
             application of the year — apply now and the grass thickens before summer heat shuts it
             down.
           </p>
-          <p className="text-muted mt-2 text-sm">
-            This week. Rain is forecast Thursday — it&apos;ll water the fertilizer in for you.
-          </p>
           <p className="text-accent mt-6 text-sm">Scotts Turf Builder 32-0-4 — 15,000 sq ft bag</p>
         </div>
       </div>
