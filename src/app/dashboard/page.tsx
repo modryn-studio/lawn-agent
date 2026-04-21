@@ -100,7 +100,7 @@ export default async function DashboardPage() {
         {proposal ? (
           <div className="space-y-6">
             {/* Proposal */}
-            <div className="border-border bg-surface rounded-lg border p-5 sm:p-8">
+            <div className="border-border rounded-lg border bg-white p-5 sm:p-8">
               {zone && (
                 <p className="text-muted mb-4 text-xs tracking-widest uppercase">Zone {zone}</p>
               )}
