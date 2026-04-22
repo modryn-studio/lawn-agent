@@ -31,6 +31,13 @@ const bodySchema = z.object({
     product_suggestion: z.string().nullable(),
     estimated_cost_usd: z.number().nullable(),
     attribute_keys_affected: z.array(z.string()),
+    attribute_context: z
+      .object({
+        hardiness_zone: z.string().optional(),
+        grass_type: z.string().optional(),
+        soil_type: z.string().optional(),
+      })
+      .optional(),
   }),
   attributes: z.array(attributeSchema),
 });
