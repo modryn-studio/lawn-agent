@@ -19,12 +19,13 @@ const CATEGORY_LABELS: Record<ProposalContent['category'], string> = {
 interface Props {
   proposal: ProposalContent;
   proposalId: string;
+  propertyId: string;
   zone: string | null;
 }
 
 type CardStatus = 'active' | 'confirming' | 'loading' | 'confirmed';
 
-export function DashboardProposalCard({ proposal, proposalId, zone }: Props) {
+export function DashboardProposalCard({ proposal, proposalId, propertyId, zone }: Props) {
   const [status, setStatus] = useState<CardStatus>('active');
 
   function handleConfirmPrompt() {
@@ -70,6 +71,19 @@ export function DashboardProposalCard({ proposal, proposalId, zone }: Props) {
           target="_blank"
           rel="noopener noreferrer"
           className="text-accent mt-6 block text-sm underline-offset-2 hover:underline"
+          onClick={() => {
+            // Fire-and-forget — new tab opens normally, fetch logs the tap to Neon
+            fetch('/api/interactions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                propertyId,
+                proposalId,
+                interactionType: 'commerce_click',
+                interactionContext: 'proposal',
+              }),
+            }).catch(() => {});
+          }}
         >
           {proposal.product_suggestion} →
         </a>

@@ -108,7 +108,7 @@ export default async function DashboardPage() {
           <div className="space-y-6">
             {/* Proposal — only when pending */}
             {proposal && proposalId ? (
-              <DashboardProposalCard proposal={proposal} proposalId={proposalId} zone={zone} />
+              <DashboardProposalCard proposal={proposal} proposalId={proposalId} propertyId={propertyId} zone={zone} />
             ) : (
               <p className="text-muted text-sm">
                 Your agent is watching. We&apos;ll surface the next action when the window opens.
