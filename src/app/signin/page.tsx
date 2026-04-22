@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   description: 'Sign in to your Lawn Agent account to see your active proposals and yard profile.',
   openGraph: {
     title: `Sign In | ${site.name}`,
-    description: 'Sign in to your Lawn Agent account to see your active proposals and yard profile.',
+    description:
+      'Sign in to your Lawn Agent account to see your active proposals and yard profile.',
     url: `${site.url}/signin`,
     siteName: site.name,
     type: 'website',

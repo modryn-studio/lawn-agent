@@ -2,16 +2,15 @@
 
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { authClient } from '@/lib/auth/client';
+import { site } from '@/config/site';
 
-export default function SigninScreen() {
-  const router = useRouter();
+export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent) {
@@ -19,29 +18,53 @@ export default function SigninScreen() {
     if (submitting) return;
     setSubmitting(true);
     setError(null);
-    const result = await authClient.signIn.email({ email, password });
+
+    const result = await authClient.requestPasswordReset({
+      email,
+      redirectTo: `${site.url}/reset-password`,
+    });
+
     if (result.error) {
-      setError(result.error.message || 'Sign in failed. Check your email and password.');
+      setError(result.error.message || 'Something went wrong. Try again.');
       setSubmitting(false);
       return;
     }
-    router.push('/dashboard');
+
+    setSent(true);
+  }
+
+  if (sent) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 sm:px-6">
+        <div className="w-full max-w-sm space-y-4">
+          <h1 className="font-heading text-text text-3xl font-normal tracking-tight md:text-[40px]">
+            Check your inbox.
+          </h1>
+          <p className="text-muted text-sm leading-relaxed">
+            We sent a reset link to {email}. It may take a minute.
+          </p>
+          <Link href="/signin" className="text-muted hover:text-foreground block text-sm">
+            Back to sign in
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 sm:px-6">
       <div className="w-full max-w-sm space-y-6">
         <h1 className="font-heading text-text text-3xl font-normal tracking-tight md:text-[40px]">
-          Welcome back.
+          Forgot your password?
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="signin-email" className="sr-only">
+            <label htmlFor="reset-email" className="sr-only">
               Email
             </label>
             <Input
-              id="signin-email"
+              id="reset-email"
               type="email"
               placeholder="Email"
               autoComplete="email"
@@ -51,37 +74,20 @@ export default function SigninScreen() {
               className="rounded-button"
             />
           </div>
-          <div>
-            <label htmlFor="signin-password" className="sr-only">
-              Password
-            </label>
-            <Input
-              id="signin-password"
-              type="password"
-              placeholder="Password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="rounded-button"
-            />
-          </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 
           <Button type="submit" disabled={submitting} className="rounded-button w-full">
-            {submitting ? 'Signing in…' : 'Sign in'}
+            {submitting ? 'Sending…' : 'Send reset link'}
           </Button>
         </form>
 
-        <div className="space-y-2 text-center">
-          <Link href="/forgot-password" className="text-muted hover:text-foreground block text-sm">
-            Forgot password?
-          </Link>
-          <Link href="/onboarding" className="text-muted hover:text-foreground block text-sm">
-            Don&apos;t have an account? Start here.
-          </Link>
-        </div>
+        <Link
+          href="/signin"
+          className="text-muted hover:text-foreground block text-center text-sm"
+        >
+          Back to sign in
+        </Link>
       </div>
     </div>
   );
