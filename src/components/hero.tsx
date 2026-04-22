@@ -4,7 +4,7 @@ import HeroSignup from '@/components/hero-signup';
 
 export default function Hero() {
   return (
-    <section className="bg-bg flex min-h-dvh flex-col md:flex-row">
+    <section className="bg-bg flex min-h-svh flex-col md:flex-row">
       {/* Image -- shown first on mobile, right panel on desktop */}
       <div className="relative h-[45vh] w-full md:order-2 md:h-auto md:w-1/2">
         <Image
