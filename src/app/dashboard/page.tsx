@@ -66,8 +66,10 @@ export default async function DashboardPage() {
 
   const propertyId = property.id as string;
 
-  // Parallel: fetch pending proposal + current yard attributes
-  const [proposalRows, attributeRows] = await Promise.all([
+  // Parallel: fetch pending proposal + current yard attributes + most recent proposal for context.
+  // attribute_context lives on proposals — we need the most recent one regardless of status
+  // so sublabels stay contextual even after the user approves their first proposal.
+  const [proposalRows, attributeRows, contextRows] = await Promise.all([
     sql`
       SELECT id, content
       FROM proposals
@@ -82,12 +84,22 @@ export default async function DashboardPage() {
       WHERE property_id = ${propertyId}
         AND is_current = true
     `,
+    sql`
+      SELECT content
+      FROM proposals
+      WHERE property_id = ${propertyId}
+      ORDER BY created_at DESC
+      LIMIT 1
+    `,
   ]);
 
   const proposalRow = proposalRows[0] ?? null;
   const proposal = proposalRow ? (proposalRow.content as ProposalContent) : null;
   const proposalId = proposalRow ? (proposalRow.id as string) : null;
-  const attributeContext = proposal?.attribute_context ?? null;
+  // Use the most recent proposal (any status) for attribute_context so sublabels
+  // remain contextual after the user approves or passes their proposal.
+  const latestProposal = contextRows[0] ? (contextRows[0].content as ProposalContent) : null;
+  const attributeContext = latestProposal?.attribute_context ?? null;
 
   const attributes = attributeRows
     .filter((r) => (DISPLAY_KEYS as readonly string[]).includes(r.attribute_key as string))

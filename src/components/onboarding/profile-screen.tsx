@@ -64,7 +64,7 @@ export default function ProfileScreen({
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 sm:px-6">
       <div className="w-full max-w-md space-y-8">
         <h1 className="font-heading text-text text-3xl font-normal tracking-tight md:text-[40px]">
-          Here&apos;s what we&apos;re starting with for your area.
+          Here&apos;s what we know about your yard.
         </h1>
 
         <ul className="space-y-4">
