@@ -40,8 +40,8 @@ export function DashboardProposalCard({ proposal, proposalId, zone }: Props) {
       if (!res.ok) throw new Error('Request failed');
       setStatus('confirmed');
     } catch {
-      // On failure, reset so user can try again
-      setStatus('active');
+      // On failure, stay in confirming so user can retry without re-tapping "I did this"
+      setStatus('confirming');
     }
   }
 
@@ -86,7 +86,7 @@ export function DashboardProposalCard({ proposal, proposalId, zone }: Props) {
       )}
       {(status === 'confirming' || status === 'loading') && (
         <div className="mt-6">
-          <p className="text-text text-[15px]">Mark as done?</p>
+          <p className="text-muted text-sm">Mark as done?</p>
           <Button
             variant="ghost"
             size="sm"
@@ -101,7 +101,7 @@ export function DashboardProposalCard({ proposal, proposalId, zone }: Props) {
             size="sm"
             disabled={status === 'loading'}
             onClick={() => setStatus('active')}
-            className="rounded-button text-muted mt-1 min-h-11 w-full justify-start px-0"
+            className="rounded-button text-muted mt-2 min-h-11 w-full justify-start px-0"
           >
             Cancel
           </Button>
