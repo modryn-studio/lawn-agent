@@ -6,6 +6,7 @@ import type { InferredAttribute } from '@/lib/yard-inference';
 
 interface ProfileScreenProps {
   attributes: InferredAttribute[];
+  attributeContext?: { hardiness_zone?: string; grass_type?: string; soil_type?: string } | null;
   onContinue: () => void;
 }
 
@@ -46,7 +47,7 @@ function sourceLabel(attr: InferredAttribute): string {
 // Which attributes to show on the profile reveal screen
 const DISPLAY_KEYS = ['hardiness_zone', 'grass_type', 'soil_type'] as const;
 
-export default function ProfileScreen({ attributes, onContinue }: ProfileScreenProps) {
+export default function ProfileScreen({ attributes, attributeContext, onContinue }: ProfileScreenProps) {
   const displayAttrs = attributes
     .filter((a) => (DISPLAY_KEYS as readonly string[]).includes(a.key))
     .sort(
@@ -67,7 +68,7 @@ export default function ProfileScreen({ attributes, onContinue }: ProfileScreenP
             <AttributeCard
               key={attr.key}
               label={displayLabel(attr)}
-              sublabel={sourceLabel(attr)}
+              sublabel={attributeContext?.[attr.key as keyof typeof attributeContext] ?? sourceLabel(attr)}
               bg="bg-white"
             />
           ))}

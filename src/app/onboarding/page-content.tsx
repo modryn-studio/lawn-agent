@@ -267,7 +267,7 @@ export default function OnboardingContent() {
       setSignupError(
         isExisting
           ? 'An account with this email already exists. Sign in below.'
-          : 'Sign up failed. Try again.',
+          : 'Sign up failed. Try again.'
       );
       return;
     }
@@ -278,7 +278,7 @@ export default function OnboardingContent() {
       setSignupError(
         isExisting
           ? 'An account with this email already exists. Sign in below.'
-          : result.error.message || 'Sign up failed. Try again.',
+          : result.error.message || 'Sign up failed. Try again.'
       );
       return;
     }
@@ -387,7 +387,7 @@ export default function OnboardingContent() {
       );
 
     case 'profile':
-      return <ProfileScreen attributes={attributes} onContinue={() => router.push('/dashboard')} />;
+      return <ProfileScreen attributes={attributes} attributeContext={proposal?.attribute_context ?? null} onContinue={() => router.push('/dashboard')} />;
 
     default:
       return null;

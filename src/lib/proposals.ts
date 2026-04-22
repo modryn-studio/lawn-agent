@@ -36,6 +36,14 @@ export const proposalSchema = z.object({
   attribute_keys_affected: z
     .array(z.string())
     .describe('Yard attribute keys this proposal directly addresses'),
+  attribute_context: z
+    .object({
+      hardiness_zone: z.string(),
+      grass_type: z.string(),
+      soil_type: z.string(),
+    })
+    .optional()
+    .describe('Contextual sublabel copy for each displayed yard attribute'),
 });
 
 export type ProposalContent = z.infer<typeof proposalSchema>;
@@ -201,7 +209,10 @@ Rules:
 - "Yard" = whole property (emotional). "Lawn" = grass specifically (actionable). Do not collapse. This distinction applies everywhere — never use yard when you mean grass, never use lawn when you mean the whole property.
 - Never use: "powerful", "seamless", "revolutionary", "AI-powered", "next-level", "smart", "intelligent".
 - Do not hallucinate product names. If you are not confident in a specific product, set product_suggestion to null.
-- If soil_ph is locked and the primary recommendation is pH-sensitive, close the rationale with one sentence explaining why a soil test would sharpen this specific recommendation. Only when the connection is real. Never as a default closer.`;
+- If soil_ph is locked and the primary recommendation is pH-sensitive, close the rationale with one sentence explaining why a soil test would sharpen this specific recommendation. Only when the connection is real. Never as a default closer.
+
+Attribute context:
+Write each attribute_context sublabel as a single sentence that is true for this zone and accurate for the current season. Use the LOCATION field if present for the soil_type sentence.`;
 
 // Accept an optional pre-computed date string so callers can log the exact value
 // that gets injected into the prompt — prevents a theoretical mismatch if the

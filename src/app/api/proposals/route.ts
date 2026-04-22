@@ -11,6 +11,7 @@ import {
   serializeContextBlock,
   buildSystemPrompt,
 } from '@/lib/proposals';
+import { reverseGeocode } from '@/lib/geocode';
 
 const log = createRouteLogger('proposals');
 
@@ -47,14 +48,16 @@ export async function POST(req: Request): Promise<Response> {
 
     // Verify property belongs to the requesting user
     const [property] = await sql`
-      SELECT id FROM properties WHERE id = ${propertyId} AND user_id = ${session.user.id}
+      SELECT id, lat, lng FROM properties WHERE id = ${propertyId} AND user_id = ${session.user.id}
     `;
     if (!property) {
       return log.end(ctx, Response.json({ error: 'Not found' }, { status: 404 }));
     }
 
-    // Pull context snapshot (same query as /api/yard GET)
-    const rows = await sql`
+    // Pull context snapshot + reverse geocode in parallel.
+    // Geocode is non-fatal — null means Claude won't get a LOCATION line.
+    const [rows, geoLocation] = await Promise.all([
+      sql`
       SELECT
         yp.attribute_key,
         yp.attribute_value,
@@ -79,7 +82,11 @@ export async function POST(req: Request): Promise<Response> {
         yp.confidence_score, yp.confidence_label, yp.source,
         yp.is_locked, yp.version, yp.created_at
       ORDER BY yp.attribute_key
-    `;
+    `,
+      property.lat && property.lng
+        ? reverseGeocode(property.lat as string, property.lng as string).catch(() => null)
+        : Promise.resolve(null),
+    ]);
 
     if (rows.length === 0) {
       return log.end(
@@ -90,6 +97,8 @@ export async function POST(req: Request): Promise<Response> {
 
     const contextBlock = buildContextBlock(rows as Record<string, unknown>[]);
     const yardContext = serializeContextBlock(propertyId, contextBlock);
+    const locationBlock = geoLocation ? `LOCATION: ${geoLocation.city}, ${geoLocation.state}` : '';
+    const finalPrompt = [locationBlock, yardContext].filter(Boolean).join('\n');
 
     log.info(ctx.reqId, 'Context built', {
       total: contextBlock.totalAttributes,
@@ -107,7 +116,8 @@ export async function POST(req: Request): Promise<Response> {
     log.info(ctx.reqId, 'Calling Claude', {
       model: 'claude-sonnet-4-6',
       systemDate,
-      promptChars: yardContext.length,
+      promptChars: finalPrompt.length,
+      hasLocation: !!geoLocation,
     });
 
     const claudeStart = Date.now();
@@ -120,7 +130,7 @@ export async function POST(req: Request): Promise<Response> {
       model: anthropicClient('claude-sonnet-4-6'),
       schema: proposalSchema,
       system: buildSystemPrompt(systemDate),
-      prompt: yardContext,
+      prompt: finalPrompt,
     });
     const claudeMs = Date.now() - claudeStart;
 

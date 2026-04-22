@@ -38,7 +38,15 @@ function displayLabel(key: string, value: string): string {
   return toTitleCase(value);
 }
 
-function sublabel(key: string, confidenceLabel: string, source: string): string {
+function sublabel(
+  key: string,
+  confidenceLabel: string,
+  source: string,
+  attributeContext?: Record<string, string> | null,
+): string {
+  // Claude-generated contextual copy takes priority when available
+  if (attributeContext?.[key]) return attributeContext[key];
+  // Static fallback for old proposals or when attribute_context is absent
   if (key === 'grass_type') return 'Based on your zone';
   if (source === 'usda_api') return 'From your zip code';
   if (source === 'regional_inference') return 'Regional estimate';
@@ -79,6 +87,7 @@ export default async function DashboardPage() {
   const proposalRow = proposalRows[0] ?? null;
   const proposal = proposalRow ? (proposalRow.content as ProposalContent) : null;
   const proposalId = proposalRow ? (proposalRow.id as string) : null;
+  const attributeContext = proposal?.attribute_context ?? null;
 
   const attributes = attributeRows
     .filter((r) => (DISPLAY_KEYS as readonly string[]).includes(r.attribute_key as string))
@@ -127,7 +136,7 @@ export default async function DashboardPage() {
                   <AttributeCard
                     key={attr.key}
                     label={displayLabel(attr.key, attr.value)}
-                    sublabel={sublabel(attr.key, attr.confidenceLabel, attr.source)}
+                    sublabel={sublabel(attr.key, attr.confidenceLabel, attr.source, attributeContext)}
                   />
                 ))}
               </ul>

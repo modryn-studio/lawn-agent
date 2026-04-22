@@ -11,6 +11,7 @@ import {
 } from '@/lib/proposals';
 import { inferAttributesFromZone, toAttributeContext } from '@/lib/yard-inference';
 import { fetchWeatherContext, serializeWeatherContext } from '@/lib/weather';
+import { reverseGeocode } from '@/lib/geocode';
 
 const log = createRouteLogger('onboarding-proposal');
 
@@ -93,12 +94,13 @@ export async function POST(req: Request): Promise<Response> {
     // Fetch weather in parallel with (synchronous) attribute inference.
     // Weather failure is non-fatal — we warn and fall back to a weather-less prompt.
     const weatherStart = Date.now();
-    const [inferred, weatherCtx] = await Promise.all([
+    const [inferred, weatherCtx, geoLocation] = await Promise.all([
       Promise.resolve(inferAttributesFromZone(zone, lat, lng)),
       fetchWeatherContext(lat, lng).catch((error) => {
         log.warn(ctx.reqId, 'Weather fetch failed, continuing without weather block', { error });
         return null;
       }),
+      reverseGeocode(lat, lng).catch(() => null),
     ]);
     const weatherMs = Date.now() - weatherStart;
 
@@ -106,7 +108,8 @@ export async function POST(req: Request): Promise<Response> {
     const contextBlock = buildContextBlockFromAttributes(attrs);
     const yardContext = serializeContextBlock(`onboarding-${zip}`, contextBlock);
     const weatherBlock = weatherCtx ? serializeWeatherContext(weatherCtx) : '';
-    const finalPrompt = weatherBlock ? `${yardContext}\n${weatherBlock}` : yardContext;
+    const locationBlock = geoLocation ? `LOCATION: ${geoLocation.city}, ${geoLocation.state}` : '';
+    const finalPrompt = [locationBlock, yardContext, weatherBlock].filter(Boolean).join('\n');
 
     log.info(ctx.reqId, 'Context built from inference', {
       total: contextBlock.totalAttributes,
