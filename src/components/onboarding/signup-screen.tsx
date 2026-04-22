@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -97,6 +98,13 @@ export default function SignupScreen({ onSignUp, onBack, error }: SignupScreenPr
         >
           Back to proposal
         </Button>
+
+        <p className="text-muted text-center text-sm">
+          Already have an account?{' '}
+          <Link href="/signin" className="underline underline-offset-2 hover:text-text">
+            Sign in
+          </Link>
+        </p>
       </div>
     </div>
   );

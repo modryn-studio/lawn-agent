@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { auth } from '@/lib/auth/server';
 import { site } from '@/config/site';
 import Hero from '@/components/hero';
 import ProposalCard from '@/components/proposal-card';
@@ -28,7 +30,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
+export const dynamic = 'force-dynamic';
+
+export default async function Home() {
+  try {
+    const { data: session } = await auth.getSession();
+    if (session?.user) redirect('/dashboard');
+  } catch {
+    // Stale cookie — treat as unauthenticated
+  }
+
   return (
     <main>
       <Hero />
