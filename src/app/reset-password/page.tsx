@@ -5,10 +5,12 @@ import ResetPasswordScreen from '@/components/reset-password-screen';
 
 export const metadata: Metadata = {
   title: `Reset Password | ${site.name}`,
-  description: 'Set a new password for your Lawn Agent account. Enter your new password below to regain access to your yard profile and proposals.',
+  description:
+    'Set a new password for your Lawn Agent account. Enter your new password below to regain access to your yard profile and proposals.',
   openGraph: {
     title: `Reset Password | ${site.name}`,
-    description: 'Set a new password for your Lawn Agent account. Enter your new password below to regain access to your yard profile and proposals.',
+    description:
+      'Set a new password for your Lawn Agent account. Enter your new password below to regain access to your yard profile and proposals.',
     url: `${site.url}/reset-password`,
     siteName: site.name,
     type: 'website',
