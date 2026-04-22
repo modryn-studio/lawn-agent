@@ -11,6 +11,12 @@ export default function HeroSignup() {
         {site.cta}
       </Link>
       <p className="text-muted mt-3 text-sm">First 10 spots. No credit card.</p>
+      <p className="text-muted mt-2 text-sm">
+        Already have an account?{' '}
+        <Link href="/signin" className="hover:text-text underline underline-offset-2">
+          Sign in
+        </Link>
+      </p>
     </div>
   );
 }
