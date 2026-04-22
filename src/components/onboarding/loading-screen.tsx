@@ -9,10 +9,9 @@ const MESSAGES = [
   'Building your first proposal.',
 ] as const;
 
-// 3 transitions × 2s + 3 × 200ms crossfade ≈ 6.6s before message 4 appears.
-// Typical call with weather integration is ~16s, so message 4 holds ~9s before advancing.
-// That's at the edge — keep an eye on p50 latency and reduce hold if calls get faster.
-const HOLD_MS = 2000;
+// 3 transitions × 3.5s + 3 × 200ms crossfade ≈ 11.1s before message 4 appears.
+// Typical call with weather integration is ~16s, so message 4 holds ~5s before advancing.
+const HOLD_MS = 3500;
 
 // Minimum time the final message must be visible before the parent may advance.
 // Guards against fast API responses skipping the last message entirely.
