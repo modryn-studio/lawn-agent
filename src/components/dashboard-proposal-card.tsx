@@ -22,13 +22,18 @@ interface Props {
   zone: string | null;
 }
 
-type CardStatus = 'active' | 'loading' | 'confirmed';
+type CardStatus = 'active' | 'confirming' | 'loading' | 'confirmed';
 
 export function DashboardProposalCard({ proposal, proposalId, zone }: Props) {
   const [status, setStatus] = useState<CardStatus>('active');
 
-  async function handleComplete() {
+  function handleConfirmPrompt() {
     if (status !== 'active') return;
+    setStatus('confirming');
+  }
+
+  async function handleComplete() {
+    if (status !== 'confirming') return;
     setStatus('loading');
     try {
       const res = await fetch(`/api/proposals/${proposalId}/complete`, { method: 'POST' });
@@ -66,18 +71,42 @@ export function DashboardProposalCard({ proposal, proposalId, zone }: Props) {
           rel="noopener noreferrer"
           className="text-accent mt-6 block text-sm underline-offset-2 hover:underline"
         >
-          {proposal.product_suggestion}
+          {proposal.product_suggestion} →
         </a>
       )}
-      <Button
-        variant="ghost"
-        size="sm"
-        disabled={status === 'loading'}
-        onClick={handleComplete}
-        className="rounded-button text-muted mt-6 min-h-11 w-full justify-start px-0"
-      >
-        {status === 'loading' ? 'Saving…' : 'I did this'}
-      </Button>
+      {status === 'active' && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleConfirmPrompt}
+          className="rounded-button text-muted mt-6 min-h-11 w-full justify-start px-0"
+        >
+          I did this
+        </Button>
+      )}
+      {(status === 'confirming' || status === 'loading') && (
+        <div className="mt-6">
+          <p className="text-text text-[15px]">Mark as done?</p>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={status === 'loading'}
+            onClick={handleComplete}
+            className="rounded-button text-accent mt-3 min-h-11 w-full justify-start px-0"
+          >
+            {status === 'loading' ? 'Saving…' : 'Done.'}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={status === 'loading'}
+            onClick={() => setStatus('active')}
+            className="rounded-button text-muted mt-1 min-h-11 w-full justify-start px-0"
+          >
+            Cancel
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
