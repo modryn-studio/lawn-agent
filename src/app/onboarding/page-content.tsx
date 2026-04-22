@@ -387,7 +387,13 @@ export default function OnboardingContent() {
       );
 
     case 'profile':
-      return <ProfileScreen attributes={attributes} attributeContext={proposal?.attribute_context ?? null} onContinue={() => router.push('/dashboard')} />;
+      return (
+        <ProfileScreen
+          attributes={attributes}
+          attributeContext={proposal?.attribute_context ?? null}
+          onContinue={() => router.push('/dashboard')}
+        />
+      );
 
     default:
       return null;

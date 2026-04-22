@@ -42,7 +42,7 @@ function sublabel(
   key: string,
   confidenceLabel: string,
   source: string,
-  attributeContext?: Record<string, string> | null,
+  attributeContext?: Record<string, string> | null
 ): string {
   // Claude-generated contextual copy takes priority when available
   if (attributeContext?.[key]) return attributeContext[key];
@@ -136,7 +136,12 @@ export default async function DashboardPage() {
                   <AttributeCard
                     key={attr.key}
                     label={displayLabel(attr.key, attr.value)}
-                    sublabel={sublabel(attr.key, attr.confidenceLabel, attr.source, attributeContext)}
+                    sublabel={sublabel(
+                      attr.key,
+                      attr.confidenceLabel,
+                      attr.source,
+                      attributeContext
+                    )}
                   />
                 ))}
               </ul>

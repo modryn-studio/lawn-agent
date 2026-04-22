@@ -47,7 +47,11 @@ function sourceLabel(attr: InferredAttribute): string {
 // Which attributes to show on the profile reveal screen
 const DISPLAY_KEYS = ['hardiness_zone', 'grass_type', 'soil_type'] as const;
 
-export default function ProfileScreen({ attributes, attributeContext, onContinue }: ProfileScreenProps) {
+export default function ProfileScreen({
+  attributes,
+  attributeContext,
+  onContinue,
+}: ProfileScreenProps) {
   const displayAttrs = attributes
     .filter((a) => (DISPLAY_KEYS as readonly string[]).includes(a.key))
     .sort(
@@ -68,7 +72,9 @@ export default function ProfileScreen({ attributes, attributeContext, onContinue
             <AttributeCard
               key={attr.key}
               label={displayLabel(attr)}
-              sublabel={attributeContext?.[attr.key as keyof typeof attributeContext] ?? sourceLabel(attr)}
+              sublabel={
+                attributeContext?.[attr.key as keyof typeof attributeContext] ?? sourceLabel(attr)
+              }
               bg="bg-white"
             />
           ))}
