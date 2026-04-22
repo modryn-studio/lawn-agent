@@ -44,15 +44,15 @@ export default function ProposalScreen({
             {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
             <p className="text-muted mt-8 text-sm">Approve or pass. That&apos;s it.</p>
             <div className="mt-6 flex gap-3">
-              <Button onClick={onApprove} className="rounded-button flex-1">
-                Approve
-              </Button>
               <Button
                 variant="ghost"
                 onClick={() => setPassed(true)}
                 className="rounded-button flex-1"
               >
                 Pass
+              </Button>
+              <Button onClick={onApprove} className="rounded-button flex-1">
+                Approve
               </Button>
             </div>
           </>
