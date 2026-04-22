@@ -59,8 +59,11 @@ Landing page → email capture (early access) → onboarding (address input) →
 
 ## Route Map
 
-- `/` — Landing page. Hero (image + copy), Proposal Card (example), How It Works, Human Section, Early Access CTA, Footer. Both CTAs link to `/onboarding`. No authenticated product yet.
-- `/onboarding` — Five screens: zip input → loading → first proposal (approve/pass) → account creation → profile reveal. State persisted in sessionStorage across auth redirect.
+- `/` — Landing page. Hero (image + copy), Proposal Card (example), How It Works, Human Section, Early Access CTA, Footer. Primary CTA links to `/onboarding`. Sign-in link below the CTA for returning users.
+- `/onboarding` — Five screens: zip input → loading → first proposal (approve/pass) → account creation → profile reveal. State persisted in sessionStorage across auth redirect. Server-side guard: auth'd users with an existing property are redirected to `/dashboard`.
+- `/signin` — Returning user sign-in. Server-side guard redirects already-onboarded users to `/dashboard`. Links to `/forgot-password` and `/onboarding`.
+- `/forgot-password` — Password reset request. Email input → `authClient.requestPasswordReset()` → email sent via Neon shared mail server. `redirectTo` points to `/reset-password`.
+- `/reset-password` — Password reset completion. Reads `?token=` from URL. Calls `authClient.resetPassword({ newPassword, token })`. Invalid/missing token shows an error state.
 - `/api/onboarding/proposal` — Unauthenticated. Zip → zone lookup (phzmapi.org) → attribute inference + weather fetch (Open-Meteo, parallel) → Claude proposal with weather context injected.
 - `/api/onboarding/complete` — Authenticated. Writes property + yard_properties + proposals rows.
 - `/dashboard` — Main view after onboarding. Proposal feed, active recommendations, yard summary.

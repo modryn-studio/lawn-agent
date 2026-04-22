@@ -44,8 +44,11 @@ basePath:
 
 ## Route Map
 
-- `/` → Landing page. Hero (image + copy), Proposal Card (example), How It Works, Human Section, Early Access CTA, Footer. Both CTAs link to `/onboarding`. No authenticated product yet.
-- `/onboarding` → Five screens: zip input → loading → first proposal (approve/pass) → account creation → profile reveal. State machine in `page-content.tsx`. Data persisted in sessionStorage across auth redirect.
+- `/` → Landing page. Hero (image + copy), Proposal Card (example), How It Works, Human Section, Early Access CTA, Footer. Primary CTA links to `/onboarding`. Sign-in link (`/signin`) below the CTA for returning users.
+- `/onboarding` → Five screens: zip input → loading → first proposal (approve/pass) → account creation → profile reveal. State machine in `page-content.tsx`. Data persisted in sessionStorage across auth redirect. Server-side guard: auth'd users with an existing property are redirected to `/dashboard`.
+- `/signin` → Returning user sign-in. Server-side guard redirects already-onboarded users to `/dashboard`. Renders `<SigninScreen />`. Links to `/forgot-password` and `/onboarding`.
+- `/forgot-password` → Password reset request. Email input → `authClient.requestPasswordReset()` → sends email via Neon shared mail server (`auth@mail.myneon.app`). `redirectTo` points to `/reset-password`.
+- `/reset-password` → Password reset completion. Reads `?token=` from URL. Calls `authClient.resetPassword({ newPassword, token })`. Invalid/missing token shows an error state.
 - `/dashboard` → Proposal feed, active recommendations, yard summary.
 - `/profile` → Yard details, assumption corrections, treatment log, confidence labels.
 - `/proposal/[id]` → Individual proposal detail, approve/pass, commerce deep link, completion confirmation.
