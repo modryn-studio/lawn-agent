@@ -7,7 +7,15 @@ const log = createRouteLogger('interactions');
 
 const postSchema = z.object({
   propertyId: z.string().uuid(),
-  interactionType: z.enum(['confirm', 'correct', 'log', 'dismiss', 'complete', 'skip', 'commerce_click']),
+  interactionType: z.enum([
+    'confirm',
+    'correct',
+    'log',
+    'dismiss',
+    'complete',
+    'skip',
+    'commerce_click',
+  ]),
   attributeKey: z.string().min(1).nullable().optional(),
   previousValue: z.string().nullable().optional(),
   newValue: z.string().nullable().optional(),
