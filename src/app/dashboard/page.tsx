@@ -66,17 +66,18 @@ export default async function DashboardPage() {
 
   const propertyId = property.id as string;
 
-  // Parallel: fetch pending proposal + current yard attributes + most recent proposal for context.
-  // attribute_context lives on proposals — we need the most recent one regardless of status
-  // so sublabels stay contextual even after the user approves their first proposal.
-  const [proposalRows, attributeRows, contextRows] = await Promise.all([
+  // Parallel: fetch proposals (pending first) + current yard attributes.
+  // We fetch the two most recent proposals: CASE sorts pending first, then by created_at.
+  // Row 0 = pending proposal (if any). Row 0 or 1 = most recent (any status) for attribute_context.
+  const [proposalRows, attributeRows] = await Promise.all([
     sql`
-      SELECT id, content
+      SELECT id, content, status
       FROM proposals
       WHERE property_id = ${propertyId}
-        AND status = 'pending'
-      ORDER BY created_at DESC
-      LIMIT 1
+      ORDER BY
+        CASE WHEN status = 'pending' THEN 0 ELSE 1 END,
+        created_at DESC
+      LIMIT 2
     `,
     sql`
       SELECT attribute_key, attribute_value, confidence_label, source
@@ -84,21 +85,15 @@ export default async function DashboardPage() {
       WHERE property_id = ${propertyId}
         AND is_current = true
     `,
-    sql`
-      SELECT content
-      FROM proposals
-      WHERE property_id = ${propertyId}
-      ORDER BY created_at DESC
-      LIMIT 1
-    `,
   ]);
 
-  const proposalRow = proposalRows[0] ?? null;
-  const proposal = proposalRow ? (proposalRow.content as ProposalContent) : null;
-  const proposalId = proposalRow ? (proposalRow.id as string) : null;
+  // First row is pending if one exists (sorted above), otherwise null.
+  const pendingRow = proposalRows.find((r) => r.status === 'pending') ?? null;
+  const proposal = pendingRow ? (pendingRow.content as ProposalContent) : null;
+  const proposalId = pendingRow ? (pendingRow.id as string) : null;
   // Use the most recent proposal (any status) for attribute_context so sublabels
   // remain contextual after the user approves or passes their proposal.
-  const latestProposal = contextRows[0] ? (contextRows[0].content as ProposalContent) : null;
+  const latestProposal = proposalRows[0] ? (proposalRows[0].content as ProposalContent) : null;
   const attributeContext = latestProposal?.attribute_context ?? null;
 
   const attributes = attributeRows

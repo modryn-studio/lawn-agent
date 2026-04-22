@@ -82,11 +82,9 @@ export default function ProfileScreen({
 
         <p className="text-muted text-sm">We&apos;ll get more accurate every season.</p>
 
-        <div className="flex justify-center">
-          <Button onClick={onContinue} className="rounded-button">
-            Go to dashboard
-          </Button>
-        </div>
+        <Button onClick={onContinue} className="rounded-button w-full">
+          Go to dashboard
+        </Button>
       </div>
     </div>
   );
