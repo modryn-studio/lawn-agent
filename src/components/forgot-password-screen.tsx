@@ -43,7 +43,7 @@ export default function ForgotPasswordScreen() {
           <p className="text-muted text-sm leading-relaxed">
             We sent a reset link to {email}. It may take a minute.
           </p>
-          <Link href="/signin" className="text-muted hover:text-foreground block text-sm">
+          <Link href="/signin" className="text-muted hover:text-foreground block text-center text-sm">
             Back to sign in
           </Link>
         </div>
@@ -82,10 +82,7 @@ export default function ForgotPasswordScreen() {
           </Button>
         </form>
 
-        <Link
-          href="/signin"
-          className="text-muted hover:text-foreground block text-center text-sm"
-        >
+        <Link href="/signin" className="text-muted hover:text-foreground block text-center text-sm">
           Back to sign in
         </Link>
       </div>

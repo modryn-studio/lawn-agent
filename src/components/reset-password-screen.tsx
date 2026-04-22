@@ -16,6 +16,23 @@ export default function ResetPasswordScreen() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (submitting || !token) return;
+    setSubmitting(true);
+    setError(null);
+
+    const result = await authClient.resetPassword({ newPassword: password, token });
+
+    if (result.error) {
+      setError(result.error.message || 'Something went wrong. Try again.');
+      setSubmitting(false);
+      return;
+    }
+
+    setDone(true);
+  }
+
   if (!token) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center px-4 sm:px-6">
@@ -41,29 +58,12 @@ export default function ResetPasswordScreen() {
           <h1 className="font-heading text-text text-3xl font-normal tracking-tight md:text-[40px]">
             Password updated.
           </h1>
-          <Link href="/signin" className="text-accent block text-sm hover:underline">
+          <Link href="/signin" className="text-muted hover:text-foreground block text-sm">
             Sign in
           </Link>
         </div>
       </div>
     );
-  }
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (submitting || !token) return;
-    setSubmitting(true);
-    setError(null);
-
-    const result = await authClient.resetPassword({ newPassword: password, token });
-
-    if (result.error) {
-      setError(result.error.message || 'Something went wrong. Try again.');
-      setSubmitting(false);
-      return;
-    }
-
-    setDone(true);
   }
 
   return (
@@ -97,6 +97,13 @@ export default function ResetPasswordScreen() {
             {submitting ? 'Saving…' : 'Set password'}
           </Button>
         </form>
+
+        <Link
+          href="/signin"
+          className="text-muted hover:text-foreground block text-center text-sm"
+        >
+          Back to sign in
+        </Link>
       </div>
     </div>
   );
