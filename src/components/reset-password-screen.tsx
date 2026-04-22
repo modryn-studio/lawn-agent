@@ -69,6 +69,9 @@ export default function ResetPasswordScreen() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 sm:px-6">
       <div className="w-full max-w-sm space-y-6">
+        <p className="font-heading text-text text-center text-base font-bold md:text-lg">
+          Lawn Agent
+        </p>
         <h1 className="font-heading text-text text-3xl font-normal tracking-tight md:text-[40px]">
           Set a new password.
         </h1>
@@ -98,10 +101,7 @@ export default function ResetPasswordScreen() {
           </Button>
         </form>
 
-        <Link
-          href="/signin"
-          className="text-muted hover:text-foreground block text-center text-sm"
-        >
+        <Link href="/signin" className="text-muted hover:text-foreground block text-center text-sm">
           Back to sign in
         </Link>
       </div>

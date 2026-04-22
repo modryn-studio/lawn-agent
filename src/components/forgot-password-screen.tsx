@@ -43,7 +43,10 @@ export default function ForgotPasswordScreen() {
           <p className="text-muted text-sm leading-relaxed">
             We sent a reset link to {email}. It may take a minute.
           </p>
-          <Link href="/signin" className="text-muted hover:text-foreground block text-center text-sm">
+          <Link
+            href="/signin"
+            className="text-muted hover:text-foreground block text-center text-sm"
+          >
             Back to sign in
           </Link>
         </div>
@@ -54,6 +57,9 @@ export default function ForgotPasswordScreen() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 sm:px-6">
       <div className="w-full max-w-sm space-y-6">
+        <p className="font-heading text-text text-center text-base font-bold md:text-lg">
+          Lawn Agent
+        </p>
         <h1 className="font-heading text-text text-3xl font-normal tracking-tight md:text-[40px]">
           Forgot your password?
         </h1>

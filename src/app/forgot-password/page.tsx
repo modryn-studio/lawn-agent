@@ -4,10 +4,10 @@ import ForgotPasswordScreen from '@/components/forgot-password-screen';
 
 export const metadata: Metadata = {
   title: `Forgot Password | ${site.name}`,
-  description: 'Enter your email and we\'ll send you a link to reset your Lawn Agent password.',
+  description: "Enter your email and we'll send you a link to reset your Lawn Agent password.",
   openGraph: {
     title: `Forgot Password | ${site.name}`,
-    description: 'Enter your email and we\'ll send you a link to reset your Lawn Agent password.',
+    description: "Enter your email and we'll send you a link to reset your Lawn Agent password.",
     url: `${site.url}/forgot-password`,
     siteName: site.name,
     type: 'website',
