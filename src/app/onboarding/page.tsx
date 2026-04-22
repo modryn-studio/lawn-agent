@@ -30,17 +30,21 @@ export default async function OnboardingPage() {
   // Onboarding is a one-way door. Auth'd users with an existing property go straight to dashboard.
   // Wrapped in try/catch: Neon Auth may try to clear a stale cookie here, which Next.js forbids
   // in Server Components. On error treat as unauthenticated — OnboardingContent handles it client-side.
+  // redirect() must be called outside the try/catch — it throws NEXT_REDIRECT internally and a
+  // plain catch {} would swallow it, silently killing the redirect.
+  let shouldRedirect = false;
   try {
     const { data: session } = await auth.getSession();
     if (session?.user) {
       const [property] = await sql`
         SELECT id FROM properties WHERE user_id = ${session.user.id} LIMIT 1
       `;
-      if (property) redirect('/dashboard');
+      if (property) shouldRedirect = true;
     }
   } catch {
     // Cookie write attempted in Server Component — safe to ignore, client guard handles redirect
   }
+  if (shouldRedirect) redirect('/dashboard');
 
   return (
     <main className="bg-bg min-h-dvh">

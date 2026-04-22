@@ -33,12 +33,14 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
+  let shouldRedirect = false;
   try {
     const { data: session } = await auth.getSession();
-    if (session?.user) redirect('/dashboard');
+    if (session?.user) shouldRedirect = true;
   } catch {
     // Stale cookie — treat as unauthenticated
   }
+  if (shouldRedirect) redirect('/dashboard');
 
   return (
     <main>
