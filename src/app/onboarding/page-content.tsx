@@ -251,13 +251,35 @@ export default function OnboardingContent() {
   // ── Sign-up handler ────────────────────────────────────────────────────────
   async function handleSignUp(data: { name: string; email: string; password: string }) {
     setSignupError(null);
-    const result = await authClient.signUp.email({
-      name: data.name,
-      email: data.email,
-      password: data.password,
-    });
+    let result: Awaited<ReturnType<typeof authClient.signUp.email>>;
+    try {
+      result = await authClient.signUp.email({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      });
+    } catch (err) {
+      // authClient throws on 4xx/5xx instead of returning { error } in some cases
+      const msg = err instanceof Error ? err.message : null;
+      const isExisting =
+        msg?.toLowerCase().includes('already exists') ||
+        msg?.toLowerCase().includes('already in use');
+      setSignupError(
+        isExisting
+          ? 'An account with this email already exists. Sign in below.'
+          : 'Sign up failed. Try again.',
+      );
+      return;
+    }
     if (result.error) {
-      setSignupError(result.error.message || 'Sign up failed. Try again.');
+      const isExisting =
+        result.error.message?.toLowerCase().includes('already exists') ||
+        result.error.message?.toLowerCase().includes('already in use');
+      setSignupError(
+        isExisting
+          ? 'An account with this email already exists. Sign in below.'
+          : result.error.message || 'Sign up failed. Try again.',
+      );
       return;
     }
     if (!proposal) {
