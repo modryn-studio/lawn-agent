@@ -47,7 +47,7 @@ export default function robots(): MetadataRoute.Robots {
 
 **Favicon files** if `src/app/favicon.ico`, `src/app/icon.png`, or `src/app/apple-icon.png` are missing, tell the user to run `/assets`. Do not generate favicons manually the asset pipeline handles transparency, grayscale detection, and all output paths correctly.
 
-**`src/app/opengraph-image.tsx`** if missing, create it. Use `site.ts` values for copy and colors, and load the logomark from `public/brand/logomark.png`. Always include: logo, headline from `site.ogTitle`, subtitle from `site.description`, and an amber CTA pill. This is the correct default structure:
+**`src/app/opengraph-image.tsx`** if missing, create it. If it already exists, do NOT overwrite it — read the existing file and leave it as-is. Use `site.ts` values for copy and colors, and load the wordmark from `public/brand/wordmark.png`. Include: wordmark, direct headline copy, and subtitle from `site.description`. No CTA pill — it is not clickable in an OG image and adds no value. This is the correct default structure:
 
 ```tsx
 import { ImageResponse } from 'next/og';
@@ -59,7 +59,7 @@ export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 export default async function OpenGraphImage() {
-  const logoData = await readFile(join(process.cwd(), 'public/brand/logomark.png'), 'base64');
+  const logoData = await readFile(join(process.cwd(), 'public/brand/wordmark.png'), 'base64');
   const logoSrc = `data:image/png;base64,${logoData}`;
 
   return new ImageResponse(
@@ -84,7 +84,7 @@ export default async function OpenGraphImage() {
       />
       <h1
         style={{
-          color: '#FAF7F2',
+          color: '#1A1A1A',
           fontSize: 64,
           fontWeight: 700,
           lineHeight: 1.1,
@@ -92,32 +92,16 @@ export default async function OpenGraphImage() {
           marginBottom: 24,
         }}
       >
-        {site.ogTitle}
+        Your yard. Figured out.
       </h1>
-      <p style={{ color: '#9E9693', fontSize: 28, margin: 0, marginBottom: 48 }}>
-        {site.description}
-      </p>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          background: site.accent,
-          color: site.bg,
-          fontSize: 22,
-          fontWeight: 700,
-          padding: '14px 28px',
-          borderRadius: 8,
-        }}
-      >
-        {site.cta}
-      </div>
+      <p style={{ color: '#9A9590', fontSize: 28, margin: 0 }}>{site.description}</p>
     </div>,
     { ...size }
   );
 }
 ```
 
-Also generate per-page `opengraph-image.tsx` for each route that has a `page.tsx` but no `opengraph-image.tsx` (scan `src/app/` exclude root, `api/`, `privacy/`, `terms/`, and any `[param]` dynamic routes). For each, briefly read the `page.tsx` to understand the page's purpose, then use the same template structure with a page-appropriate headline and subtitle. The logo, brand colors, and CTA pill are identical across all pages.
+Also generate per-page `opengraph-image.tsx` for each route that has a `page.tsx` but no `opengraph-image.tsx` (scan `src/app/` exclude root, `api/`, `privacy/`, `terms/`, and any `[param]` dynamic routes). For each, briefly read the `page.tsx` to understand the page's purpose, then use the same template structure with a page-appropriate headline and subtitle. The wordmark and brand colors are identical across all pages. No CTA pill on any page.
 
 **`src/config/site.ts`** â€” if missing, create it by reading the site name, URL, description, OG copy, and brand colors from `layout.tsx` and `copilot-instructions.md`:
 

@@ -7,7 +7,7 @@ export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 export default async function OpenGraphImage() {
-  const logoData = await readFile(join(process.cwd(), 'public/brand/logomark.png'), 'base64');
+  const logoData = await readFile(join(process.cwd(), 'public/brand/wordmark.png'), 'base64');
   const logoSrc = `data:image/png;base64,${logoData}`;
 
   return new ImageResponse(
@@ -40,25 +40,9 @@ export default async function OpenGraphImage() {
           marginBottom: 24,
         }}
       >
-        {site.ogTitle}
+        Your yard. Figured out.
       </h1>
-      <p style={{ color: '#9A9590', fontSize: 28, margin: 0, marginBottom: 48 }}>
-        {site.description}
-      </p>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          background: site.accent,
-          color: '#FAF8F4',
-          fontSize: 22,
-          fontWeight: 700,
-          padding: '14px 28px',
-          borderRadius: 8,
-        }}
-      >
-        {site.cta}
-      </div>
+      <p style={{ color: '#9A9590', fontSize: 28, margin: 0 }}>{site.description}</p>
     </div>,
     { ...size }
   );
