@@ -25,12 +25,18 @@ export const metadata: Metadata = {
 
 export default async function SigninPage() {
   // Already onboarded users go straight to the dashboard.
-  const { data: session } = await auth.getSession();
-  if (session?.user) {
-    const [property] = await sql`
-      SELECT id FROM properties WHERE user_id = ${session.user.id} LIMIT 1
-    `;
-    if (property) redirect('/dashboard');
+  // Wrapped in try/catch: Neon Auth may try to clear a stale cookie here, which Next.js forbids
+  // in Server Components. On error treat as unauthenticated and render the sign-in form.
+  try {
+    const { data: session } = await auth.getSession();
+    if (session?.user) {
+      const [property] = await sql`
+        SELECT id FROM properties WHERE user_id = ${session.user.id} LIMIT 1
+      `;
+      if (property) redirect('/dashboard');
+    }
+  } catch {
+    // Cookie write attempted in Server Component — safe to ignore, render sign-in form
   }
 
   return (
