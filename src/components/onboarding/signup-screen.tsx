@@ -101,7 +101,7 @@ export default function SignupScreen({ onSignUp, onBack, error }: SignupScreenPr
 
         <p className="text-muted text-center text-sm">
           Already have an account?{' '}
-          <Link href="/signin" className="underline underline-offset-2 hover:text-text">
+          <Link href="/signin" className="hover:text-text underline underline-offset-2">
             Sign in
           </Link>
         </p>
