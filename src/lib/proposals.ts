@@ -38,9 +38,9 @@ export const proposalSchema = z.object({
     .describe('Yard attribute keys this proposal directly addresses'),
   attribute_context: z
     .object({
-      hardiness_zone: z.string(),
-      grass_type: z.string(),
-      soil_type: z.string(),
+      hardiness_zone: z.string().optional(),
+      grass_type: z.string().optional(),
+      soil_type: z.string().optional(),
     })
     .optional()
     .describe('Contextual sublabel copy for each displayed yard attribute'),
