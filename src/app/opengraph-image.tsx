@@ -5,7 +5,7 @@ import sharp from 'sharp';
 import { site } from '@/config/site';
 
 export const size = { width: 1200, height: 630 };
-export const contentType = 'image/png';
+export const contentType = 'image/jpeg';
 
 export default async function OpenGraphImage() {
   const [logoData, heroRaw, fontData] = await Promise.all([
@@ -15,11 +15,15 @@ export default async function OpenGraphImage() {
   ]);
 
   // Satori does not support WebP — convert to JPEG via sharp (bundled with Next.js)
-  const heroJpeg = await sharp(heroRaw).jpeg({ quality: 85 }).toBuffer();
+  // Resize to exact panel dimensions before encoding; reduces final PNG output size significantly
+  const heroJpeg = await sharp(heroRaw)
+    .resize(600, 630, { fit: 'cover', position: 'center' })
+    .jpeg({ quality: 70 })
+    .toBuffer();
   const logoSrc = `data:image/png;base64,${logoData}`;
   const heroSrc = `data:image/jpeg;base64,${heroJpeg.toString('base64')}`;
 
-  return new ImageResponse(
+  const imageResponse = new ImageResponse(
     <div
       style={{
         background: site.bg,
@@ -111,4 +115,10 @@ export default async function OpenGraphImage() {
       ],
     }
   );
+
+  // Satori outputs lossless PNG — photos compress poorly as PNG and blow past WhatsApp's 600KB limit.
+  // Re-encode the rendered output as JPEG to reliably stay under that threshold.
+  const pngBuffer = Buffer.from(await imageResponse.arrayBuffer());
+  const jpegBuffer = await sharp(pngBuffer).jpeg({ quality: 82 }).toBuffer();
+  return new Response(jpegBuffer, { headers: { 'Content-Type': 'image/jpeg' } });
 }
