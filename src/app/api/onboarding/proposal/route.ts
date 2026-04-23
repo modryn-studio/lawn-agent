@@ -183,8 +183,8 @@ export async function POST(req: Request): Promise<Response> {
     let telemetryId: string | null = null;
     try {
       const [row] = await sql`
-        INSERT INTO proposal_telemetry (zip, climate_zone, proposal_category, proposal_title)
-        VALUES (${zip}, ${zone}, ${proposal.category}, ${proposal.title})
+        INSERT INTO proposal_telemetry (zip, climate_zone, proposal_category, proposal_title, proposal_content)
+        VALUES (${zip}, ${zone}, ${proposal.category}, ${proposal.title}, ${JSON.stringify(proposal)})
         RETURNING id
       `;
       telemetryId = row.id as string;
