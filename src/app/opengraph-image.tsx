@@ -120,5 +120,5 @@ export default async function OpenGraphImage() {
   // Re-encode the rendered output as JPEG to reliably stay under that threshold.
   const pngBuffer = Buffer.from(await imageResponse.arrayBuffer());
   const jpegBuffer = await sharp(pngBuffer).jpeg({ quality: 82 }).toBuffer();
-  return new Response(jpegBuffer, { headers: { 'Content-Type': 'image/jpeg' } });
+  return new Response(new Uint8Array(jpegBuffer), { headers: { 'Content-Type': 'image/jpeg' } });
 }
