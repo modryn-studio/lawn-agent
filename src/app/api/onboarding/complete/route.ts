@@ -1,7 +1,21 @@
+import { after } from 'next/server';
+import nodemailer from 'nodemailer';
 import { createRouteLogger } from '@/lib/route-logger';
 import { auth } from '@/lib/auth/server';
 import { sql } from '@/lib/db';
+import { env } from '@/lib/env';
+import { site } from '@/config/site';
 import { z } from 'zod';
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 const log = createRouteLogger('onboarding-complete');
 
 const numericString = z.string().regex(/^-?\d+(\.\d+)?$/, 'Must be a numeric string');
@@ -60,7 +74,7 @@ export async function POST(req: Request): Promise<Response> {
       );
     }
 
-    const { zip, lat, lng, proposal, attributes } = parsed.data;
+    const { zip, lat, lng, zone, proposal, attributes } = parsed.data;
     const userId = session.user.id;
 
     log.info(ctx.reqId, 'Completing onboarding', { userId, zip });
@@ -133,6 +147,43 @@ export async function POST(req: Request): Promise<Response> {
     `;
 
     log.info(ctx.reqId, 'Proposal saved', { proposalId: proposalRow.id });
+
+    const grassType = attributes.find((a) => a.key === 'grass_type')?.value ?? 'unknown';
+
+    after(async () => {
+      const gmailUser = env.GMAIL_USER;
+      const gmailPass = env.GMAIL_APP_PASSWORD;
+      const notifyTo = env.FEEDBACK_TO || gmailUser;
+
+      if (!gmailUser || !gmailPass) {
+        log.warn(ctx.reqId, 'Gmail credentials not configured — skipping signup notification');
+        return;
+      }
+
+      const html = `
+        <div style="font-family: monospace; padding: 20px; max-width: 500px;">
+          <h2 style="margin: 0 0 16px;">🌱 New signup</h2>
+          <p><strong>Zip:</strong> ${escapeHtml(zip)}</p>
+          <p><strong>Zone:</strong> ${escapeHtml(zone)}</p>
+          <p><strong>Grass type:</strong> ${escapeHtml(grassType)}</p>
+          <p><strong>Proposal:</strong> ${escapeHtml(proposal.title)}</p>
+          <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+          <hr style="margin: 16px 0; border: 1px solid #333;" />
+          <p style="color: #666; font-size: 12px;">Sent from <strong>${site.name}</strong> &mdash; <a href="${site.url}">${site.url}</a></p>
+        </div>
+      `;
+
+      await nodemailer
+        .createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } })
+        .sendMail({
+          from: gmailUser,
+          to: notifyTo,
+          subject: `🌱 New signup [${site.name}] zip ${zip} / Zone ${zone}`,
+          html,
+        })
+        .then(() => log.info(ctx.reqId, 'Signup notification sent', { to: notifyTo }))
+        .catch((err) => log.warn(ctx.reqId, 'Signup notification failed', { error: err }));
+    });
 
     return log.end(ctx, Response.json({ ok: true, propertyId, proposalId: proposalRow.id }));
   } catch (error) {
