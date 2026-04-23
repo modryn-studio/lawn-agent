@@ -54,10 +54,14 @@ export async function PATCH(req: Request): Promise<Response> {
     after(async () => {
       if (!updated[0]) return; // duplicate call — outcome already set, skip
       const { zip, climate_zone, proposal_title } = updated[0] as {
-        zip: string;
+        zip: string | null;
         climate_zone: string | null;
-        proposal_title: string;
+        proposal_title: string | null;
       };
+
+      const safeZip = zip ?? 'unknown';
+      const safeZone = climate_zone ?? 'unknown';
+      const safeTitle = proposal_title ?? 'unknown';
 
       const gmailUser = env.GMAIL_USER;
       const gmailPass = env.GMAIL_APP_PASSWORD;
@@ -72,9 +76,9 @@ export async function PATCH(req: Request): Promise<Response> {
       const html = `
         <div style="font-family: monospace; padding: 20px; max-width: 500px;">
           <h2 style="margin: 0 0 16px;">${outcomeLabel} — anonymous user</h2>
-          <p><strong>Zip:</strong> ${escapeHtml(zip)}</p>
-          <p><strong>Zone:</strong> ${escapeHtml(climate_zone ?? 'unknown')}</p>
-          <p><strong>Proposal:</strong> ${escapeHtml(proposal_title)}</p>
+          <p><strong>Zip:</strong> ${escapeHtml(safeZip)}</p>
+          <p><strong>Zone:</strong> ${escapeHtml(safeZone)}</p>
+          <p><strong>Proposal:</strong> ${escapeHtml(safeTitle)}</p>
           <p><strong>Time:</strong> ${new Date().toISOString()}</p>
           <hr style="margin: 16px 0; border: 1px solid #333;" />
           <p style="color: #666; font-size: 12px;">Sent from <strong>${site.name}</strong> &mdash; <a href="${site.url}">${site.url}</a></p>
@@ -86,7 +90,7 @@ export async function PATCH(req: Request): Promise<Response> {
         .sendMail({
           from: gmailUser,
           to: notifyTo,
-          subject: `${outcomeLabel} [${site.name}] zip ${zip} / Zone ${climate_zone ?? 'unknown'}`,
+          subject: `${outcomeLabel} [${site.name}] zip ${safeZip} / Zone ${safeZone}`,
           html,
         })
         .then(() => log.info(ctx.reqId, 'Outcome notification sent', { to: notifyTo, outcome }))
