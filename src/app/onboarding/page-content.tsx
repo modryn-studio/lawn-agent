@@ -170,6 +170,7 @@ export default function OnboardingContent() {
       setZone(stored.zone);
       setLat(stored.lat);
       setLng(stored.lng);
+      setTelemetryId(stored.telemetryId);
       confirmWriteDoneRef.current = false;
       confirmBeatDoneRef.current = false;
       setStep('confirmation');
@@ -309,6 +310,7 @@ export default function OnboardingContent() {
     fetch('/api/onboarding/telemetry', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
       body: JSON.stringify({ telemetryId: id, outcome }),
     }).catch(() => {});
   }

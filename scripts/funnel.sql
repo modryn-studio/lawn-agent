@@ -2,7 +2,7 @@
 -- Run in Neon console whenever you want a health check.
 -- "Proposal viewed" is NOT in the DB — use Vercel Analytics /onboarding pageviews for that stage.
 -- Stages 2-5 come from proposal_telemetry (anonymous, no user FK).
--- Stage 8 (silent pass) is estimated: /onboarding pageviews - properties count - waitlist pass rows.
+-- Stage 10 (silent pass) is estimated: /onboarding pageviews - properties count - waitlist pass rows.
 
 SELECT stage, count FROM (
 
