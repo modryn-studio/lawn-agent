@@ -21,6 +21,7 @@ const SK = {
   zone: 'la_onboarding_zone',
   lat: 'la_onboarding_lat',
   lng: 'la_onboarding_lng',
+  telemetryId: 'la_onboarding_telemetry_id',
 } as const;
 
 function storeOnboardingData(data: {
@@ -30,6 +31,7 @@ function storeOnboardingData(data: {
   zone: string;
   lat: string;
   lng: string;
+  telemetryId: string | null;
 }) {
   try {
     sessionStorage.setItem(SK.proposal, JSON.stringify(data.proposal));
@@ -38,6 +40,7 @@ function storeOnboardingData(data: {
     sessionStorage.setItem(SK.zone, data.zone);
     sessionStorage.setItem(SK.lat, data.lat);
     sessionStorage.setItem(SK.lng, data.lng);
+    sessionStorage.setItem(SK.telemetryId, data.telemetryId ?? '');
   } catch {
     // Storage unavailable (private mode, quota exceeded) — data stays in memory only.
     // The onboarding flow works without sessionStorage; auth redirect recovery will fail.
@@ -52,6 +55,7 @@ function loadOnboardingData() {
     const zone = sessionStorage.getItem(SK.zone);
     const lat = sessionStorage.getItem(SK.lat);
     const lng = sessionStorage.getItem(SK.lng);
+    const telemetryId = sessionStorage.getItem(SK.telemetryId) || null;
     if (!proposal || !attributes || !zip || !zone || !lat || !lng) return null;
     return {
       proposal: JSON.parse(proposal) as ProposalContent,
@@ -60,6 +64,7 @@ function loadOnboardingData() {
       zone,
       lat,
       lng,
+      telemetryId,
     };
   } catch {
     return null;
@@ -89,6 +94,7 @@ export default function OnboardingContent() {
   const [zone, setZone] = useState('');
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
+  const [telemetryId, setTelemetryId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [signupError, setSignupError] = useState<string | null>(null);
 
@@ -102,6 +108,7 @@ export default function OnboardingContent() {
     zone: string;
     lat: string;
     lng: string;
+    telemetryId: string | null;
   } | null>(null);
   const lastMessageReadyRef = useRef(false);
 
@@ -121,6 +128,7 @@ export default function OnboardingContent() {
     setZone(data.zone);
     setLat(data.lat);
     setLng(data.lng);
+    setTelemetryId(data.telemetryId);
     storeOnboardingData(data);
     setStep('proposal');
   }
@@ -144,6 +152,7 @@ export default function OnboardingContent() {
         setZone(stored.zone);
         setLat(stored.lat);
         setLng(stored.lng);
+        setTelemetryId(stored.telemetryId);
         setStep('proposal');
       }
       return; // Case 1: no auth, no storage → stay on zip
@@ -239,6 +248,7 @@ export default function OnboardingContent() {
         zone: body.zone as string,
         lat: body.lat as string,
         lng: body.lng as string,
+        telemetryId: (body.telemetryId as string | null) ?? null,
       };
       // Only advances if message 3 has already been shown for 1s
       tryAdvanceToProposal();
@@ -294,8 +304,18 @@ export default function OnboardingContent() {
     completeOnboarding({ proposal, attributes, zip, zone, lat, lng });
   }
 
+  // ── Telemetry outcome helper ────────────────────────────────────────────────
+  function updateTelemetryOutcome(id: string, outcome: 'approved' | 'passed') {
+    fetch('/api/onboarding/telemetry', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telemetryId: id, outcome }),
+    }).catch(() => {});
+  }
+
   // ── Pass handler ───────────────────────────────────────────────────────────
   async function handlePass(email?: string) {
+    if (telemetryId) updateTelemetryOutcome(telemetryId, 'passed');
     if (email) {
       // Fire-and-forget — save email to waitlist
       fetch('/api/waitlist', {
@@ -356,6 +376,7 @@ export default function OnboardingContent() {
           error={error}
           onApprove={() => {
             setError(null);
+            if (telemetryId) updateTelemetryOutcome(telemetryId, 'approved');
             if (session.data?.user) {
               // Already authenticated (e.g., returning from failed completion)
               confirmWriteDoneRef.current = false;
