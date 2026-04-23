@@ -232,7 +232,6 @@ Tell Copilot **"check logs"** at any point — it reads `dev.log` and flags erro
 - Ship one killer feature, not ten mediocre ones
 - Instrument analytics before features — data from day one
 - Onboard users to value in under 2 minutes
-- **Local-first by default** — no accounts, no data stored server-side, pay only when you use it. This is a brand-level commitment across every product, not a feature toggle.
 
 ## Positioning Decision: AI
 
