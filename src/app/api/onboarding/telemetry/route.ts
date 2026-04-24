@@ -17,15 +17,26 @@ function escapeHtml(str: string): string {
 
 const log = createRouteLogger('onboarding-telemetry');
 
-const bodySchema = z.object({
+// Discriminated union: either record an approve/pass outcome, or record that the proposal rendered.
+// Two separate action types — one endpoint, one schema per action.
+const outcomeSchema = z.object({
   telemetryId: z.string().uuid(),
   outcome: z.enum(['approved', 'passed']),
 });
 
+const renderedSchema = z.object({
+  telemetryId: z.string().uuid(),
+  proposalRenderedAt: z.literal(true),
+});
+
+const bodySchema = z.union([outcomeSchema, renderedSchema]);
+
 // PATCH /api/onboarding/telemetry
 // Unauthenticated — matches the generation endpoint's security profile.
-// Updates outcome on an existing proposal_telemetry row.
-// AND outcome IS NULL guard prevents overwriting on duplicate calls.
+// Two action types:
+//   { telemetryId, outcome } — records approve/pass. AND outcome IS NULL guard prevents overwrite.
+//   { telemetryId, proposalRenderedAt: true } — records that the proposal rendered. Server sets now().
+//     AND proposal_rendered_at IS NULL guard is idempotent.
 // NOTE: No rate limit on this endpoint — named debt, add before Reddit outreach scales.
 export async function PATCH(req: Request): Promise<Response> {
   const ctx = log.begin();
@@ -40,6 +51,20 @@ export async function PATCH(req: Request): Promise<Response> {
       );
     }
 
+    // ── Proposal rendered ──────────────────────────────────────────────────
+    if ('proposalRenderedAt' in parsed.data) {
+      const { telemetryId } = parsed.data;
+      log.info(ctx.reqId, 'Recording proposal rendered', { telemetryId });
+      await sql`
+        UPDATE proposal_telemetry
+        SET proposal_rendered_at = now()
+        WHERE id = ${telemetryId}
+          AND proposal_rendered_at IS NULL
+      `;
+      return log.end(ctx, Response.json({ ok: true }), { telemetryId, action: 'rendered' });
+    }
+
+    // ── Outcome (approve / pass) ───────────────────────────────────────────
     const { telemetryId, outcome } = parsed.data;
     log.info(ctx.reqId, 'Updating telemetry outcome', { telemetryId, outcome });
 

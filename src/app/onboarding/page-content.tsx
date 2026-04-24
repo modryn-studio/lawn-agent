@@ -131,6 +131,16 @@ export default function OnboardingContent() {
     setTelemetryId(data.telemetryId);
     storeOnboardingData(data);
     setStep('proposal');
+    // Record that the proposal rendered — tells us how many users survived the loading state.
+    // Fire-and-forget. Non-fatal if telemetryId is null (INSERT failed silently at generation time).
+    if (data.telemetryId) {
+      fetch('/api/onboarding/telemetry', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        keepalive: true,
+        body: JSON.stringify({ telemetryId: data.telemetryId, proposalRenderedAt: true }),
+      }).catch(() => {});
+    }
   }
 
   // ── Mount logic: handle auth return ────────────────────────────────────────

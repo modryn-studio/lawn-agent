@@ -26,42 +26,46 @@ SELECT stage, count FROM (
   FROM proposal_telemetry
 
   UNION ALL
-  SELECT 2, 'Approved in onboarding',                      COUNT(*)::int
+  SELECT 2, 'Proposal rendered (survived loading)',        COUNT(*)::int
+  FROM proposal_telemetry WHERE proposal_rendered_at IS NOT NULL
+
+  UNION ALL
+  SELECT 3, 'Approved in onboarding',                      COUNT(*)::int
   FROM proposal_telemetry WHERE outcome = 'approved'
 
   UNION ALL
-  SELECT 3, 'Passed in onboarding',                        COUNT(*)::int
+  SELECT 4, 'Passed in onboarding',                        COUNT(*)::int
   FROM proposal_telemetry WHERE outcome = 'passed'
 
   UNION ALL
-  SELECT 4, 'Bounced (no outcome captured)',               COUNT(*)::int
+  SELECT 5, 'Bounced (no outcome captured)',               COUNT(*)::int
   FROM proposal_telemetry WHERE outcome IS NULL
 
   UNION ALL
-  SELECT 5, 'Completed onboarding (signed up)',            COUNT(*)::int
+  SELECT 6, 'Completed onboarding (signed up)',            COUNT(*)::int
   FROM properties
 
   UNION ALL
-  SELECT 6, 'Active proposals (pending)',                  COUNT(*)::int
+  SELECT 7, 'Active proposals (pending)',                  COUNT(*)::int
   FROM proposals WHERE status = 'pending'
 
   UNION ALL
-  SELECT 7, 'Completed actions (I did this)',              COUNT(*)::int
+  SELECT 8, 'Completed actions (I did this)',              COUNT(*)::int
   FROM proposals WHERE status = 'done'
 
   UNION ALL
-  SELECT 8, 'Product link taps (commerce_click)',          COUNT(*)::int
+  SELECT 9, 'Product link taps (commerce_click)',          COUNT(*)::int
   FROM property_interactions WHERE interaction_type = 'commerce_click'
 
   UNION ALL
-  SELECT 9, 'Passed — left email',                        COUNT(*)::int
+  SELECT 10, 'Passed — left email',                       COUNT(*)::int
   FROM waitlist WHERE source = 'pass'
 
   UNION ALL
-  SELECT 10, 'Passed — silent (not in DB)',                NULL::int
+  SELECT 11, 'Passed — silent (not in DB)',                NULL::int
 
   UNION ALL
-  SELECT 11, 'Non-US captured',                           COUNT(*)::int
+  SELECT 12, 'Non-US captured',                           COUNT(*)::int
   FROM waitlist WHERE source = 'non_us'
 
 ) t ORDER BY ord;
@@ -106,3 +110,19 @@ SELECT
 FROM proposal_telemetry
 ORDER BY generated_at DESC
 LIMIT 10;
+
+-- ── Section 5: Loading state duration (post-instrumentation runs only) ────────
+-- NULL until at least one run completes after migration 011. That's expected.
+SELECT
+  COUNT(*)                                                              AS instrumented_runs,
+  ROUND(MIN(EXTRACT(EPOCH FROM (proposal_rendered_at - generated_at)) * 1000))::int  AS min_ms,
+  ROUND(AVG(EXTRACT(EPOCH FROM (proposal_rendered_at - generated_at)) * 1000))::int  AS avg_ms,
+  ROUND(MAX(EXTRACT(EPOCH FROM (proposal_rendered_at - generated_at)) * 1000))::int  AS max_ms,
+  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (
+    ORDER BY EXTRACT(EPOCH FROM (proposal_rendered_at - generated_at)) * 1000
+  ))::int                                                               AS p50_ms,
+  ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (
+    ORDER BY EXTRACT(EPOCH FROM (proposal_rendered_at - generated_at)) * 1000
+  ))::int                                                               AS p95_ms
+FROM proposal_telemetry
+WHERE proposal_rendered_at IS NOT NULL;
