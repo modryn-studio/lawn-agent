@@ -32,8 +32,11 @@ export default function SignupScreen({ onSignUp, onBack, error }: SignupScreenPr
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 sm:px-6">
       <div className="w-full max-w-sm space-y-6">
         <h1 className="font-heading text-text text-3xl font-normal tracking-tight md:text-[40px]">
-          Next: what to buy and where to get it.
+          Sign up to keep going.
         </h1>
+        <p className="text-muted text-base">
+          We&apos;ll tell you when your lawn needs attention next.
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

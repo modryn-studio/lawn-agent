@@ -1,6 +1,11 @@
+import { after } from 'next/server';
+import nodemailer from 'nodemailer';
 import { createRouteLogger } from '@/lib/route-logger';
 import { auth } from '@/lib/auth/server';
 import { sql } from '@/lib/db';
+import { env } from '@/lib/env';
+import { site } from '@/config/site';
+import { generateAndSaveProposalForProperty } from '@/lib/proposals';
 
 const log = createRouteLogger('proposals-complete');
 
@@ -55,6 +60,43 @@ export async function POST(
           (${propertyId}, ${session.user.id}, 'complete', ${proposalId}, 'proposal')
       `,
     ]);
+
+    // Notify founder on completion — fire-and-forget after response
+    after(async () => {
+      const gmailUser = env.GMAIL_USER;
+      const gmailPass = env.GMAIL_APP_PASSWORD;
+      const notifyTo = env.FEEDBACK_TO || gmailUser;
+      if (!gmailUser || !gmailPass) return;
+
+      const html = `
+        <div style="font-family: monospace; padding: 20px; max-width: 500px;">
+          <h2 style="margin: 0 0 16px;">✅ I did it — proposal completed</h2>
+          <p><strong>User:</strong> ${session.user.email ?? session.user.id}</p>
+          <p><strong>Proposal ID:</strong> ${proposalId}</p>
+          <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+          <hr style="margin: 16px 0; border: 1px solid #333;" />
+          <p style="color: #666; font-size: 12px;">Sent from <strong>${site.name}</strong> &mdash; <a href="${site.url}">${site.url}</a></p>
+        </div>
+      `;
+
+      await nodemailer
+        .createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } })
+        .sendMail({
+          from: gmailUser,
+          to: notifyTo,
+          subject: `✅ I did it [${site.name}]`,
+          html,
+        })
+        .then(() => log.info(ctx.reqId, 'Completion notification sent', { to: notifyTo }))
+        .catch((err) => log.warn(ctx.reqId, 'Completion notification failed', { error: err }));
+    });
+
+    // Auto-generate the next proposal after completion — fire-and-forget
+    after(() =>
+      generateAndSaveProposalForProperty(propertyId).catch((err) =>
+        log.warn(ctx.reqId, 'Auto-generation failed', { error: String(err) })
+      )
+    );
 
     return log.end(ctx, Response.json({ ok: true }), { proposalId, propertyId });
   } catch (error) {

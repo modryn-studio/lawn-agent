@@ -53,13 +53,14 @@ basePath:
 - `/profile` → Yard details, assumption corrections, treatment log, confidence labels.
 - `/proposal/[id]` → Individual proposal detail, approve/pass, commerce deep link, completion confirmation.
 - `/api/auth/[...path]` → Auth proxy. Forwards all auth requests to Neon Auth server via `auth.handler()`. Wraps each method with `withCanonicalOrigin()` to normalize the `Origin` header before proxying — required workaround for Node.js 22 undici bug. Do not simplify this back to a plain re-export.
-- `/api/proposals` → Proposal generation. Pulls yard context, calls Anthropic, returns structured proposal.
+- `/api/proposals` → Proposal generation. Auth + ownership check, then delegates to `generateAndSaveProposalForProperty()` in `src/lib/proposals.ts`. Returns the inserted proposal row.
 - `/api/onboarding/proposal` → Unauthenticated. Zip → zone lookup (phzmapi.org) → attribute inference + weather fetch (Open-Meteo) in parallel → Claude proposal with weather context block injected → non-fatal INSERT to `proposal_telemetry`. Returns `{ ok, proposal, attributes, zone, lat, lng, telemetryId }`.
 - `/api/onboarding/complete` → Authenticated. Writes property + yard_properties + proposals rows. Called after signup redirect.
+- `/api/proposals/[id]/complete` → Authenticated. Single transaction: flips proposal to `status = 'done'` + logs `complete` interaction. Two `after()` fire post-response: (1) Gmail notification to founder, (2) `generateAndSaveProposalForProperty()` auto-generates the next pending proposal. Generation failure does not undo the status flip. Dashboard picks up the new proposal on next load (`force-dynamic`).
 - `/api/onboarding/telemetry` → Unauthenticated PATCH. Captures approve/pass outcome on an anonymous `proposal_telemetry` row. Body: `{ telemetryId: UUID, outcome: 'approved' | 'passed' }`. `AND outcome IS NULL` guard prevents overwriting on retry. Named debt: rate limit before Reddit outreach (issue #14).
 - `/api/yard` → Yard properties CRUD. Versioned rows, source + confidence tracking.
-- `/api/interactions` → Log user events: confirm, correct, log, approve, pass, complete.
-- `/api/waitlist` → Capture email + optional country + optional zip at onboarding soft wall or Pass. No auth. Upserts on email. `source` distinguishes origin: `'pass'` (proposal passed), `'non_us'` (non-US block, pending), `'onboarding'` (default). Sends Gmail notification to founder on every signup. `zip` stored for seasonal re-engagement (issue #4); uses `COALESCE` on upsert so zip is never overwritten with null.
+- `/api/interactions` → Log user events: confirm, correct, log, approve, pass, complete, commerce_click, profile_viewed. Sends Gmail notification to founder on `commerce_click` (product link tapped). `profile_viewed` fires on mount of the profile reveal screen — tracks how many signed-up users reach the end of onboarding.
+- `/api/waitlist` → Capture email + optional country + optional zip at onboarding soft wall or Pass. No auth. Upserts on email. `source` distinguishes origin: `'pass'` (proposal passed), `'non_us'` (non-US block, pending), `'onboarding'` (default). Sends Gmail notification to founder on every signup. `zip` stored for seasonal re-engagement (issue #4); uses `COALESCE` on upsert so zip is never overwritten with null. **Dev guard:** skips all DB writes when `NODE_ENV === 'development'`.
 - `/privacy` → Privacy policy
 - `/terms` → Terms of service
 
@@ -108,6 +109,7 @@ All headings: `tracking-tight`. Body/UI: default tracking. Line height: H1 deskt
 - CTA: "I want a better yard"
 - Onboarding zip screen: "We'll use this to tell you what your lawn needs."
 - Onboarding proposal screen: "Here's what your lawn needs today." / "Approve or pass. That's it."
+- Onboarding signup screen: "Sign up to keep going." / "We'll tell you when your lawn needs attention next."
 - Onboarding profile screen: "Here's what we're starting with for your area." / "We'll get more accurate every season."
 - Assumption label (medium confidence): "Clay-loam soil — likely for your area"
 - Assumption label (confirmed): "Cool-season grass — does that sound right? [Yes / No, change it]"

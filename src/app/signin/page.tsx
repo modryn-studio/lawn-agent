@@ -7,11 +7,12 @@ import SigninScreen from '@/components/signin-screen';
 
 export const metadata: Metadata = {
   title: `Sign In | ${site.name}`,
-  description: 'Sign in to your Lawn Agent account to see your active proposals and yard profile.',
+  description:
+    'Sign in to your Lawn Agent account. View your active lawn proposal, yard profile, and treatment history. Your agent picks up exactly where you left off.',
   openGraph: {
     title: `Sign In | ${site.name}`,
     description:
-      'Sign in to your Lawn Agent account to see your active proposals and yard profile.',
+      'Sign in to your Lawn Agent account. View your active lawn proposal, yard profile, and treatment history. Your agent picks up exactly where you left off.',
     url: `${site.url}/signin`,
     siteName: site.name,
     type: 'website',

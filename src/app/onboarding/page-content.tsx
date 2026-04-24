@@ -95,6 +95,7 @@ export default function OnboardingContent() {
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
   const [telemetryId, setTelemetryId] = useState<string | null>(null);
+  const [propertyId, setPropertyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [signupError, setSignupError] = useState<string | null>(null);
 
@@ -223,6 +224,8 @@ export default function OnboardingContent() {
           const body = await res.json().catch(() => ({}));
           throw new Error(body.error || 'Failed to save');
         }
+        const { propertyId: pid } = await res.json().catch(() => ({}));
+        if (pid) setPropertyId(pid);
         clearOnboardingData();
         confirmWriteDoneRef.current = true;
         if (confirmBeatDoneRef.current) setStep('profile');
@@ -424,6 +427,7 @@ export default function OnboardingContent() {
         <ProfileScreen
           attributes={attributes}
           attributeContext={proposal?.attribute_context ?? null}
+          propertyId={propertyId}
           onContinue={() => router.push('/dashboard')}
         />
       );

@@ -27,6 +27,11 @@ const bodySchema = z.object({
 export async function POST(req: Request): Promise<Response> {
   const ctx = log.begin();
 
+  // Skip all DB writes in development — keeps waitlist clean during local testing.
+  if (process.env.NODE_ENV === 'development') {
+    return log.end(ctx, Response.json({ ok: true }), { skipped: 'development' });
+  }
+
   try {
     const parsed = bodySchema.safeParse(await req.json());
 

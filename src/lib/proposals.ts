@@ -1,4 +1,10 @@
 import { z } from 'zod';
+import { generateObject } from 'ai';
+import { createAnthropic } from '@ai-sdk/anthropic';
+import { sql } from '@/lib/db';
+import { env } from '@/lib/env';
+import { reverseGeocode } from '@/lib/geocode';
+import { createRouteLogger } from '@/lib/route-logger';
 
 // ── Proposal output schema ────────────────────────────────────────────────────
 // Defines what claude-sonnet-4-6 must return. Stored verbatim in proposals.content.
@@ -226,4 +232,147 @@ export function buildSystemPrompt(date?: string): string {
       year: 'numeric',
     });
   return SYSTEM_PROMPT.replace('{CURRENT_DATE}', currentDate);
+}
+
+// ── Authenticated proposal generation ─────────────────────────────────────────
+// Generates and saves a new pending proposal for a known property.
+// Called from /api/proposals (manual) and /api/proposals/[id]/complete (auto, via after()).
+//
+// Returns the inserted DB row on success.
+// Returns null for graceful skips: pending proposal already exists, or no yard data.
+// Throws on unexpected errors — callers decide to surface or swallow.
+export async function generateAndSaveProposalForProperty(
+  propertyId: string
+): Promise<Record<string, unknown> | null> {
+  const log = createRouteLogger('proposal-gen');
+  const ctx = log.begin();
+
+  try {
+    // Pending guard — do not create a duplicate if one is already waiting for action.
+    // Uses status = 'pending' specifically; a 'done' proposal is the trigger, not a blocker.
+    const [{ count }] = await sql`
+      SELECT COUNT(*)::int AS count
+      FROM proposals
+      WHERE property_id = ${propertyId}
+        AND status = 'pending'
+    `;
+    if ((count as number) > 0) {
+      log.info(ctx.reqId, 'Skipped — pending proposal exists', { propertyId });
+      return null;
+    }
+
+    // Fetch property coordinates for optional reverse geocoding
+    const [property] = await sql`
+      SELECT lat, lng FROM properties WHERE id = ${propertyId}
+    `;
+    if (!property) {
+      log.warn(ctx.reqId, 'Property not found', { propertyId });
+      return null;
+    }
+
+    // Yard context + geocode in parallel — geocode is non-fatal
+    const [rows, geoLocation] = await Promise.all([
+      sql`
+        SELECT
+          yp.attribute_key,
+          yp.attribute_value,
+          yp.value_unit,
+          yp.confidence_score,
+          yp.confidence_label,
+          yp.source,
+          yp.is_locked,
+          yp.version,
+          yp.created_at AS last_updated,
+          COUNT(pi.id) FILTER (WHERE pi.interaction_type = 'confirm') AS confirm_count,
+          COUNT(pi.id) FILTER (WHERE pi.interaction_type = 'correct') AS correct_count,
+          MAX(pi.created_at) AS last_interaction_at
+        FROM yard_properties yp
+        LEFT JOIN property_interactions pi
+          ON pi.property_id = yp.property_id
+          AND pi.attribute_key = yp.attribute_key
+        WHERE yp.property_id = ${propertyId}
+          AND yp.is_current = true
+        GROUP BY
+          yp.id, yp.attribute_key, yp.attribute_value, yp.value_unit,
+          yp.confidence_score, yp.confidence_label, yp.source,
+          yp.is_locked, yp.version, yp.created_at
+        ORDER BY yp.attribute_key
+      `,
+      property.lat && property.lng
+        ? reverseGeocode(property.lat as string, property.lng as string).catch(() => null)
+        : Promise.resolve(null),
+    ]);
+
+    if (rows.length === 0) {
+      log.warn(ctx.reqId, 'Skipped — no yard data', { propertyId });
+      return null;
+    }
+
+    const contextBlock = buildContextBlock(rows as Record<string, unknown>[]);
+    const yardContext = serializeContextBlock(propertyId, contextBlock);
+    const locationBlock = geoLocation ? `LOCATION: ${geoLocation.city}, ${geoLocation.state}` : '';
+    const finalPrompt = [locationBlock, yardContext].filter(Boolean).join('\n');
+
+    const systemDate = new Date().toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+
+    log.info(ctx.reqId, 'Calling Claude', {
+      propertyId,
+      model: 'claude-sonnet-4-6',
+      systemDate,
+      promptChars: finalPrompt.length,
+      maturity: contextBlock.dataMaturity,
+      hasLocation: !!geoLocation,
+    });
+
+    const anthropicClient = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY });
+    const claudeStart = Date.now();
+    const {
+      object: proposalContent,
+      usage,
+      finishReason,
+    } = await generateObject({
+      model: anthropicClient('claude-sonnet-4-6'),
+      schema: proposalSchema,
+      system: buildSystemPrompt(systemDate),
+      prompt: finalPrompt,
+    });
+    const claudeMs = Date.now() - claudeStart;
+
+    // claude-sonnet-4-6 pricing: $3/M input tokens, $15/M output tokens
+    const inputCost = ((usage?.inputTokens ?? 0) / 1_000_000) * 3;
+    const outputCost = ((usage?.outputTokens ?? 0) / 1_000_000) * 15;
+
+    log.info(ctx.reqId, 'Proposal generated', {
+      title: proposalContent.title,
+      category: proposalContent.category,
+      priority: proposalContent.priority,
+      finishReason,
+      claudeMs,
+      tokens: {
+        input: usage?.inputTokens,
+        output: usage?.outputTokens,
+      },
+      costUsd: (inputCost + outputCost).toFixed(6),
+    });
+
+    const [proposal] = await sql`
+      INSERT INTO proposals (property_id, status, title, content)
+      VALUES (${propertyId}, 'pending', ${proposalContent.title}, ${JSON.stringify(proposalContent)})
+      RETURNING id, property_id, status, title, content, created_at
+    `;
+
+    log.info(ctx.reqId, 'Proposal saved', {
+      proposalId: proposal.id,
+      elapsedMs: Date.now() - ctx.reqStart,
+    });
+
+    return proposal as Record<string, unknown>;
+  } catch (error) {
+    log.err(ctx, error);
+    throw error;
+  }
 }

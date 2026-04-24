@@ -49,7 +49,7 @@ export function DashboardProposalCard({ proposal, proposalId, propertyId, zone }
   if (status === 'confirmed') {
     return (
       <div className="border-border rounded-lg border bg-white p-5 sm:p-8">
-        <p className="text-text text-[17px] leading-snug font-medium">
+        <p className="text-text text-base leading-snug font-medium">
           {CATEGORY_LABELS[proposal.category]}
         </p>
         <p className="text-muted mt-2 text-[15px]">Your agent is watching.</p>

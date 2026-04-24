@@ -46,26 +46,30 @@ SELECT stage, count FROM (
   FROM properties
 
   UNION ALL
-  SELECT 7, 'Active proposals (pending)',                  COUNT(*)::int
+  SELECT 7, 'Saw profile reveal',                          COUNT(*)::int
+  FROM property_interactions WHERE interaction_type = 'profile_viewed'
+
+  UNION ALL
+  SELECT 8, 'Active proposals (pending)',                  COUNT(*)::int
   FROM proposals WHERE status = 'pending'
 
   UNION ALL
-  SELECT 8, 'Completed actions (I did this)',              COUNT(*)::int
+  SELECT 9, 'Completed actions (I did this)',              COUNT(*)::int
   FROM proposals WHERE status = 'done'
 
   UNION ALL
-  SELECT 9, 'Product link taps (commerce_click)',          COUNT(*)::int
+  SELECT 10, 'Product link taps (commerce_click)',          COUNT(*)::int
   FROM property_interactions WHERE interaction_type = 'commerce_click'
 
   UNION ALL
-  SELECT 10, 'Passed — left email',                       COUNT(*)::int
+  SELECT 11, 'Passed — left email',                       COUNT(*)::int
   FROM waitlist WHERE source = 'pass'
 
   UNION ALL
-  SELECT 11, 'Passed — silent (not in DB)',                NULL::int
+  SELECT 12, 'Passed — silent (not in DB)',                NULL::int
 
   UNION ALL
-  SELECT 12, 'Non-US captured',                           COUNT(*)::int
+  SELECT 13, 'Non-US captured',                           COUNT(*)::int
   FROM waitlist WHERE source = 'non_us'
 
 ) t ORDER BY ord;
@@ -99,7 +103,7 @@ LIMIT 20;
 
 -- ── Section 4: Recent anonymous runs (last 10, full detail) ──────────────────
 SELECT
-  generated_at::date                              AS date,
+  (generated_at AT TIME ZONE 'America/Chicago')::timestamp(0) AS generated_ct,
   zip,
   climate_zone                                    AS zone,
   proposal_category                               AS category,

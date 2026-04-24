@@ -179,18 +179,22 @@ export async function POST(req: Request): Promise<Response> {
       promptChars: finalPrompt.length,
     });
 
-    // Log anonymous telemetry — non-fatal. Failure never blocks the proposal response.
+    // Log anonymous telemetry — non-fatal. Skipped in development to keep the DB clean.
     let telemetryId: string | null = null;
-    try {
-      const [row] = await sql`
-        INSERT INTO proposal_telemetry (zip, climate_zone, proposal_category, proposal_title, proposal_content)
-        VALUES (${zip}, ${zone}, ${proposal.category}, ${proposal.title}, ${JSON.stringify(proposal)})
-        RETURNING id
-      `;
-      telemetryId = row.id as string;
-      log.info(ctx.reqId, 'Telemetry row written', { telemetryId });
-    } catch (telemetryError) {
-      log.warn(ctx.reqId, 'Telemetry insert failed (non-fatal)', { error: telemetryError });
+    if (process.env.NODE_ENV !== 'development') {
+      try {
+        const [row] = await sql`
+          INSERT INTO proposal_telemetry (zip, climate_zone, proposal_category, proposal_title, proposal_content)
+          VALUES (${zip}, ${zone}, ${proposal.category}, ${proposal.title}, ${JSON.stringify(proposal)})
+          RETURNING id
+        `;
+        telemetryId = row.id as string;
+        log.info(ctx.reqId, 'Telemetry row written', { telemetryId });
+      } catch (telemetryError) {
+        log.warn(ctx.reqId, 'Telemetry insert failed (non-fatal)', { error: telemetryError });
+      }
+    } else {
+      log.info(ctx.reqId, 'Telemetry skipped (development)');
     }
 
     return log.end(

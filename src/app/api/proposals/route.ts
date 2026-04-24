@@ -1,23 +1,10 @@
 import { createRouteLogger } from '@/lib/route-logger';
 import { auth } from '@/lib/auth/server';
 import { sql } from '@/lib/db';
-import { env } from '@/lib/env';
-import { generateObject } from 'ai';
-import { createAnthropic } from '@ai-sdk/anthropic';
 import { z } from 'zod';
-import {
-  proposalSchema,
-  buildContextBlock,
-  serializeContextBlock,
-  buildSystemPrompt,
-} from '@/lib/proposals';
-import { reverseGeocode } from '@/lib/geocode';
+import { generateAndSaveProposalForProperty } from '@/lib/proposals';
 
 const log = createRouteLogger('proposals');
-
-// Initialize Anthropic provider with validated API key.
-// Explicit pass so the dependency is visible in code review.
-const anthropicClient = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY });
 
 // ── POST handler ──────────────────────────────────────────────────────────────
 const postSchema = z.object({
@@ -46,125 +33,23 @@ export async function POST(req: Request): Promise<Response> {
 
     log.info(ctx.reqId, 'Generating proposal', { propertyId });
 
-    // Verify property belongs to the requesting user
+    // Verify property belongs to the requesting user before delegating to lib
     const [property] = await sql`
-      SELECT id, lat, lng FROM properties WHERE id = ${propertyId} AND user_id = ${session.user.id}
+      SELECT id FROM properties WHERE id = ${propertyId} AND user_id = ${session.user.id}
     `;
     if (!property) {
       return log.end(ctx, Response.json({ error: 'Not found' }, { status: 404 }));
     }
 
-    // Pull context snapshot + reverse geocode in parallel.
-    // Geocode is non-fatal — null means Claude won't get a LOCATION line.
-    const [rows, geoLocation] = await Promise.all([
-      sql`
-      SELECT
-        yp.attribute_key,
-        yp.attribute_value,
-        yp.value_unit,
-        yp.confidence_score,
-        yp.confidence_label,
-        yp.source,
-        yp.is_locked,
-        yp.version,
-        yp.created_at AS last_updated,
-        COUNT(pi.id) FILTER (WHERE pi.interaction_type = 'confirm') AS confirm_count,
-        COUNT(pi.id) FILTER (WHERE pi.interaction_type = 'correct') AS correct_count,
-        MAX(pi.created_at) AS last_interaction_at
-      FROM yard_properties yp
-      LEFT JOIN property_interactions pi
-        ON pi.property_id = yp.property_id
-        AND pi.attribute_key = yp.attribute_key
-      WHERE yp.property_id = ${propertyId}
-        AND yp.is_current = true
-      GROUP BY
-        yp.id, yp.attribute_key, yp.attribute_value, yp.value_unit,
-        yp.confidence_score, yp.confidence_label, yp.source,
-        yp.is_locked, yp.version, yp.created_at
-      ORDER BY yp.attribute_key
-    `,
-      property.lat && property.lng
-        ? reverseGeocode(property.lat as string, property.lng as string).catch(() => null)
-        : Promise.resolve(null),
-    ]);
-
-    if (rows.length === 0) {
-      return log.end(
-        ctx,
-        Response.json({ error: 'No yard data for this property yet' }, { status: 422 })
-      );
+    const proposal = await generateAndSaveProposalForProperty(propertyId);
+    if (!proposal) {
+      // null = pending proposal already exists, or no yard data yet
+      return log.end(ctx, Response.json({ error: 'Could not generate proposal' }, { status: 422 }));
     }
 
-    const contextBlock = buildContextBlock(rows as Record<string, unknown>[]);
-    const yardContext = serializeContextBlock(propertyId, contextBlock);
-    const locationBlock = geoLocation ? `LOCATION: ${geoLocation.city}, ${geoLocation.state}` : '';
-    const finalPrompt = [locationBlock, yardContext].filter(Boolean).join('\n');
-
-    log.info(ctx.reqId, 'Context built', {
-      total: contextBlock.totalAttributes,
-      confirmed: contextBlock.confirmedCount,
-      maturity: contextBlock.dataMaturity,
+    return log.end(ctx, Response.json({ ok: true, proposal }), {
+      proposalId: proposal.id as string,
     });
-
-    // Call claude-sonnet-4-6 via AI SDK generateObject.
-    // generateObject enforces schema conformance — no post-processing needed.
-    const systemDate = new Date().toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    });
-    log.info(ctx.reqId, 'Calling Claude', {
-      model: 'claude-sonnet-4-6',
-      systemDate,
-      promptChars: finalPrompt.length,
-      hasLocation: !!geoLocation,
-    });
-
-    const claudeStart = Date.now();
-    const {
-      object: proposalContent,
-      usage,
-      warnings,
-      finishReason,
-    } = await generateObject({
-      model: anthropicClient('claude-sonnet-4-6'),
-      schema: proposalSchema,
-      system: buildSystemPrompt(systemDate),
-      prompt: finalPrompt,
-    });
-    const claudeMs = Date.now() - claudeStart;
-
-    // claude-sonnet-4-6 pricing: $3/M input tokens, $15/M output tokens
-    const inputCost = ((usage?.inputTokens ?? 0) / 1_000_000) * 3;
-    const outputCost = ((usage?.outputTokens ?? 0) / 1_000_000) * 15;
-
-    log.info(ctx.reqId, 'Proposal generated', {
-      title: proposalContent.title,
-      category: proposalContent.category,
-      priority: proposalContent.priority,
-      finishReason,
-      claudeMs,
-      tokens: {
-        input: usage?.inputTokens,
-        output: usage?.outputTokens,
-        total: usage?.totalTokens,
-      },
-      costUsd: {
-        input: inputCost.toFixed(6),
-        output: outputCost.toFixed(6),
-        total: (inputCost + outputCost).toFixed(6),
-      },
-      warnings: warnings?.length ? warnings : undefined,
-    });
-
-    // Insert proposal into DB
-    const [proposal] = await sql`
-      INSERT INTO proposals (property_id, status, title, content)
-      VALUES (${propertyId}, 'pending', ${proposalContent.title}, ${JSON.stringify(proposalContent)})
-      RETURNING id, property_id, status, title, content, created_at
-    `;
-
-    return log.end(ctx, Response.json({ ok: true, proposal }), { proposalId: proposal.id });
   } catch (error) {
     log.err(ctx, error);
     return Response.json({ error: 'Internal error' }, { status: 500 });

@@ -1,6 +1,6 @@
 # Lawn Agent — Guide
 
-_Updated April 23, 2026._
+_Updated April 24, 2026._
 
 ---
 
@@ -46,14 +46,14 @@ Sign-in and full password reset are live.
 After onboarding, authenticated users land on `/dashboard`. Shows:
 
 - Current proposal (zone label, title, summary, timing, product suggestion as Amazon search link)
-- "I did this" button — marks the proposal `done`, logs a `complete` interaction, flips card to confirmation state
+- "I did this" button — marks the proposal `done`, logs a `complete` interaction, flips card to confirmation state. The next proposal is auto-generated in the background. Refresh to see it.
 - Yard attributes (hardiness zone, grass type, soil type) with contextual sublabels — Claude writes a one-sentence sublabel per attribute tailored to the specific zone and season. Falls back to static confidence labels if not available.
 
 ---
 
 ## What's not built yet
 
-Individual proposal pages, profile corrections, subscription billing. Auto-generating the next proposal after completion (issue #10). Password reset emails from own domain (issue #11 — v2).
+Individual proposal pages, profile corrections, subscription billing. Password reset emails from own domain (issue #11 — v2).
 
 ---
 

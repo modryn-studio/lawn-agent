@@ -66,15 +66,17 @@ Landing page → email capture (early access) → onboarding (address input) →
 - `/reset-password` — Password reset completion. Reads `?token=` from URL. Calls `authClient.resetPassword({ newPassword, token })`. Invalid/missing token shows an error state.
 - `/api/onboarding/proposal` — Unauthenticated. Zip → zone lookup (phzmapi.org) → attribute inference + weather fetch (Open-Meteo, parallel) → Claude proposal with weather context injected.
 - `/api/onboarding/complete` — Authenticated. Writes property + yard_properties + proposals rows.
+- `/api/onboarding/telemetry` — Unauthenticated PATCH. Captures approve/pass outcome on an anonymous `proposal_telemetry` row. `AND outcome IS NULL` guard prevents overwriting on retry.
 - `/dashboard` — Main view after onboarding. Proposal feed, active recommendations, yard summary.
 - `/profile` — Yard details. Assumption corrections, treatment log, confidence labels per attribute.
 - `/proposal/[id]` — Individual proposal. Full detail, approve/pass, deep link to pre-filled cart, completion confirmation.
 - `/privacy` — Privacy policy.
 - `/terms` — Terms of service.
 - `/api/auth/[...path]` — Auth proxy. Forwards requests to Neon Auth via `withCanonicalOrigin()` wrapper. Do not simplify to a plain re-export.
-- `/api/proposals` — Proposal generation endpoint. Pulls confidence-weighted yard context, calls Anthropic, returns structured proposal.
+- `/api/proposals` — Proposal generation endpoint. Auth + ownership check, then delegates to `generateAndSaveProposalForProperty()` in `src/lib/proposals.ts`. Returns the inserted proposal row.
+- `/api/proposals/[id]/complete` — Authenticated. Single transaction: flips proposal to `status = 'done'` + logs `complete` interaction. Two `after()` fire post-response: (1) Gmail notification to founder, (2) auto-generates the next pending proposal via `generateAndSaveProposalForProperty()`. Generation failure does not undo the status flip.
 - `/api/yard` — Yard properties CRUD. Versioned rows, source + confidence tracking per Michelle's schema.
-- `/api/interactions` — Log user events: confirm, correct, log, approve, pass, complete.
+- `/api/interactions` — Log user events: confirm, correct, log, approve, pass, complete, commerce_click, profile_viewed. Sends Gmail notification to founder on `commerce_click`. `profile_viewed` fires on mount of the profile reveal screen.
 - `/api/waitlist` — Capture email + optional country + optional zip at onboarding soft wall or Pass. No auth. Upserts on email. `source` distinguishes origin: `'pass'` (proposal passed), `'non_us'` (non-US block, pending), `'onboarding'` (default). Sends Gmail notification to founder on every signup. `zip` stored for seasonal re-engagement; uses `COALESCE` on upsert so zip is never overwritten with null.
 
 ---

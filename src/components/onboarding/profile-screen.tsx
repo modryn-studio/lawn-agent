@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { AttributeCard } from '@/components/ui/attribute-card';
 import type { InferredAttribute } from '@/lib/yard-inference';
@@ -7,6 +8,7 @@ import type { InferredAttribute } from '@/lib/yard-inference';
 interface ProfileScreenProps {
   attributes: InferredAttribute[];
   attributeContext?: { hardiness_zone?: string; grass_type?: string; soil_type?: string } | null;
+  propertyId?: string | null;
   onContinue: () => void;
 }
 
@@ -50,8 +52,25 @@ const DISPLAY_KEYS = ['hardiness_zone', 'grass_type', 'soil_type'] as const;
 export default function ProfileScreen({
   attributes,
   attributeContext,
+  propertyId,
   onContinue,
 }: ProfileScreenProps) {
+  // Record that the user saw the profile reveal — tells us how many complete the full flow.
+  // Fire-and-forget, non-fatal. Only fires if propertyId is available (write succeeded).
+  useEffect(() => {
+    if (!propertyId) return;
+    fetch('/api/interactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
+      body: JSON.stringify({
+        propertyId,
+        interactionType: 'profile_viewed',
+        interactionContext: 'onboarding',
+      }),
+    }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const displayAttrs = attributes
     .filter((a) => (DISPLAY_KEYS as readonly string[]).includes(a.key))
     .sort(

@@ -1,6 +1,10 @@
+import { after } from 'next/server';
+import nodemailer from 'nodemailer';
 import { createRouteLogger } from '@/lib/route-logger';
 import { auth } from '@/lib/auth/server';
 import { sql } from '@/lib/db';
+import { env } from '@/lib/env';
+import { site } from '@/config/site';
 import { z } from 'zod';
 
 const log = createRouteLogger('interactions');
@@ -15,6 +19,7 @@ const postSchema = z.object({
     'complete',
     'skip',
     'commerce_click',
+    'profile_viewed',
   ]),
   attributeKey: z.string().min(1).nullable().optional(),
   previousValue: z.string().nullable().optional(),
@@ -79,6 +84,40 @@ export async function POST(req: Request): Promise<Response> {
          ${interactionContext}, ${sessionId ?? null})
       RETURNING id, created_at
     `;
+
+    // Notify founder on high-intent actions — fire-and-forget after response
+    if (interactionType === 'commerce_click') {
+      after(async () => {
+        const gmailUser = env.GMAIL_USER;
+        const gmailPass = env.GMAIL_APP_PASSWORD;
+        const notifyTo = env.FEEDBACK_TO || gmailUser;
+        if (!gmailUser || !gmailPass) return;
+
+        const html = `
+          <div style="font-family: monospace; padding: 20px; max-width: 500px;">
+            <h2 style="margin: 0 0 16px;">🛒 Product link tapped</h2>
+            <p><strong>User:</strong> ${session.user.email ?? session.user.id}</p>
+            <p><strong>Proposal:</strong> ${proposalId ?? 'unknown'}</p>
+            <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+            <hr style="margin: 16px 0; border: 1px solid #333;" />
+            <p style="color: #666; font-size: 12px;">Sent from <strong>${site.name}</strong> &mdash; <a href="${site.url}">${site.url}</a></p>
+          </div>
+        `;
+
+        await nodemailer
+          .createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } })
+          .sendMail({
+            from: gmailUser,
+            to: notifyTo,
+            subject: `🛒 Product link tapped [${site.name}]`,
+            html,
+          })
+          .then(() => log.info(ctx.reqId, 'Commerce click notification sent', { to: notifyTo }))
+          .catch((err) =>
+            log.warn(ctx.reqId, 'Commerce click notification failed', { error: err })
+          );
+      });
+    }
 
     return log.end(ctx, Response.json({ ok: true, row }), { propertyId, interactionType });
   } catch (error) {

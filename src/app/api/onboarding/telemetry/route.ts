@@ -41,6 +41,11 @@ const bodySchema = z.union([outcomeSchema, renderedSchema]);
 export async function PATCH(req: Request): Promise<Response> {
   const ctx = log.begin();
 
+  // Skip all DB writes in development — keeps telemetry clean during local testing.
+  if (process.env.NODE_ENV === 'development') {
+    return log.end(ctx, Response.json({ ok: true }), { skipped: 'development' });
+  }
+
   try {
     const body = await req.json();
     const parsed = bodySchema.safeParse(body);
