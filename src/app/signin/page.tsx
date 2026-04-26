@@ -24,29 +24,40 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function SigninPage() {
+export default async function SigninPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string }>;
+}) {
   // Already onboarded users go straight to the dashboard.
   // Wrapped in try/catch: Neon Auth may try to clear a stale cookie here, which Next.js forbids
   // in Server Components. On error treat as unauthenticated and render the sign-in form.
   // redirect() must be called outside the try/catch — it throws NEXT_REDIRECT internally and a
   // plain catch {} would swallow it, silently killing the redirect.
-  let shouldRedirect = false;
+  let redirectTo: string | null = null;
   try {
     const { data: session } = await auth.getSession();
     if (session?.user) {
       const [property] = await sql`
         SELECT id FROM properties WHERE user_id = ${session.user.id} LIMIT 1
       `;
-      if (property) shouldRedirect = true;
+      // Authenticated + property → dashboard. Authenticated but no property → resume onboarding.
+      redirectTo = property ? '/dashboard' : '/onboarding';
     }
   } catch {
     // Cookie write attempted in Server Component — safe to ignore, render sign-in form
   }
-  if (shouldRedirect) redirect('/dashboard');
+  if (redirectTo) redirect(redirectTo);
+
+  // Validate the redirect param: must be a relative path, not an open redirect vector.
+  const params = await searchParams;
+  const raw = params.redirect;
+  const redirectAfterSignin =
+    typeof raw === 'string' && raw.startsWith('/') && !raw.startsWith('//') ? raw : null;
 
   return (
     <main className="bg-bg min-h-dvh">
-      <SigninScreen />
+      <SigninScreen redirectAfterSignin={redirectAfterSignin} />
     </main>
   );
 }

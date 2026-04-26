@@ -12,6 +12,7 @@
   --color-foreground: #1a1a1a; /* body text — alias for button/input variants */
   --color-muted-foreground: #9a9590; /* dimmed text — alias for ghost buttons */
   --color-card: #f0ede8; /* card/panel bg — alias for secondary buttons */
+  --color-error: #dc2626; /* error red — wrong credentials, validation failures */
   --font-heading: var(--font-playfair-display); /* Playfair Display */
   --font-body: var(--font-inter); /* Inter */
   --radius-button: 6px; /* Dieter spec — not pill, applied to all buttons and inputs */

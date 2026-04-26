@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -15,6 +16,7 @@ export default function SignupScreen({ onSignUp, onBack, error }: SignupScreenPr
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
@@ -73,20 +75,35 @@ export default function SignupScreen({ onSignUp, onBack, error }: SignupScreenPr
             <label htmlFor="signup-password" className="sr-only">
               Password
             </label>
-            <Input
-              id="signup-password"
-              type="password"
-              placeholder="Password"
-              autoComplete="new-password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="rounded-button"
-            />
+            <div className="relative">
+              <Input
+                id="signup-password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Password"
+                autoComplete="new-password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="rounded-button pr-11"
+              />
+              {/* raw <button> per design system — non-standard shape exception */}
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="text-muted hover:text-text absolute top-1/2 right-3 -translate-y-1/2"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <p role="alert" className="text-error text-sm">
+              {error}
+            </p>
+          )}
 
           <Button type="submit" disabled={submitting} className="rounded-button w-full">
             {submitting ? 'Creating account…' : 'Create account'}

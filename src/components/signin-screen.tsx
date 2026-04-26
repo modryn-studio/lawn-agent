@@ -3,14 +3,21 @@
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/cn';
 import { authClient } from '@/lib/auth/client';
 
-export default function SigninScreen() {
+interface SigninScreenProps {
+  redirectAfterSignin?: string | null;
+}
+
+export default function SigninScreen({ redirectAfterSignin }: SigninScreenProps) {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,13 +26,35 @@ export default function SigninScreen() {
     if (submitting) return;
     setSubmitting(true);
     setError(null);
-    const result = await authClient.signIn.email({ email, password });
-    if (result.error) {
-      setError(result.error.message || 'Sign in failed. Check your email and password.');
+    try {
+      const result = await authClient.signIn.email({ email, password });
+      if (result.error) {
+        const status = result.error.status;
+        if (status === 429) {
+          setError('Too many attempts. Try again in a few minutes.');
+        } else if (status === 401 || status === 400) {
+          setError('Check your email and password.');
+        } else {
+          setError('Something went wrong. Try again.');
+        }
+        return;
+      }
+      router.push(redirectAfterSignin ?? '/dashboard');
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : '';
+      if (msg === 'Invalid email or password') {
+        setError('Check your email and password.');
+      } else if (
+        msg.toLowerCase().includes('too many') ||
+        msg.toLowerCase().includes('rate limit')
+      ) {
+        setError('Too many attempts. Try again in a few minutes.');
+      } else {
+        setError('Something went wrong. Try again.');
+      }
+    } finally {
       setSubmitting(false);
-      return;
     }
-    router.push('/dashboard');
   }
 
   return (
@@ -50,27 +79,50 @@ export default function SigninScreen() {
               autoComplete="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="rounded-button"
+              aria-invalid={error ? true : undefined}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (error) setError(null);
+              }}
+              className={cn('rounded-button', error && 'border-error')}
             />
           </div>
           <div>
             <label htmlFor="signin-password" className="sr-only">
               Password
             </label>
-            <Input
-              id="signin-password"
-              type="password"
-              placeholder="Password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="rounded-button"
-            />
+            <div className="relative">
+              <Input
+                id="signin-password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Password"
+                autoComplete="current-password"
+                required
+                value={password}
+                aria-invalid={error ? true : undefined}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (error) setError(null);
+                }}
+                className={cn('rounded-button pr-11', error && 'border-error')}
+              />
+              {/* raw <button> per design system — non-standard shape exception */}
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="text-muted hover:text-text absolute top-1/2 right-3 -translate-y-1/2"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <p role="alert" className="text-error text-sm">
+              {error}
+            </p>
+          )}
 
           <Button type="submit" disabled={submitting} className="rounded-button w-full">
             {submitting ? 'Signing in…' : 'Sign in'}

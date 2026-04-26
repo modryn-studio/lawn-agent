@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/cn';
 import { authClient } from '@/lib/auth/client';
 import { site } from '@/config/site';
 
@@ -19,18 +20,23 @@ export default function ForgotPasswordScreen() {
     setSubmitting(true);
     setError(null);
 
-    const result = await authClient.requestPasswordReset({
-      email,
-      redirectTo: `${site.url}/reset-password`,
-    });
+    try {
+      const result = await authClient.requestPasswordReset({
+        email,
+        redirectTo: `${site.url}/reset-password`,
+      });
 
-    if (result.error) {
-      setError(result.error.message || 'Something went wrong. Try again.');
+      if (result.error) {
+        setError('Something went wrong. Try again.');
+        return;
+      }
+
+      setSent(true);
+    } catch {
+      setError('Something went wrong. Try again.');
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    setSent(true);
   }
 
   if (sent) {
@@ -76,12 +82,20 @@ export default function ForgotPasswordScreen() {
               autoComplete="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="rounded-button"
+              aria-invalid={error ? true : undefined}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (error) setError(null);
+              }}
+              className={cn('rounded-button', error && 'border-error')}
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <p role="alert" className="text-error text-sm">
+              {error}
+            </p>
+          )}
 
           <Button type="submit" disabled={submitting} className="rounded-button w-full">
             {submitting ? 'Sending…' : 'Send reset link'}

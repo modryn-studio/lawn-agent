@@ -5,6 +5,8 @@ import { useState, type FormEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/cn';
+import { Eye, EyeOff } from 'lucide-react';
 import { authClient } from '@/lib/auth/client';
 
 export default function ResetPasswordScreen() {
@@ -12,6 +14,7 @@ export default function ResetPasswordScreen() {
   const token = searchParams.get('token');
 
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,15 +25,27 @@ export default function ResetPasswordScreen() {
     setSubmitting(true);
     setError(null);
 
-    const result = await authClient.resetPassword({ newPassword: password, token });
+    try {
+      const result = await authClient.resetPassword({ newPassword: password, token });
 
-    if (result.error) {
-      setError(result.error.message || 'Something went wrong. Try again.');
+      if (result.error) {
+        const status = result.error.status;
+        if (status === 400 || status === 401) {
+          setError('This link is expired or invalid. Request a new one.');
+        } else if (status === 422) {
+          setError('Password must be at least 8 characters.');
+        } else {
+          setError('Something went wrong. Try again.');
+        }
+        return;
+      }
+
+      setDone(true);
+    } catch {
+      setError('Something went wrong. Try again.');
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    setDone(true);
   }
 
   if (!token) {
@@ -89,12 +104,20 @@ export default function ResetPasswordScreen() {
               required
               minLength={8}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="rounded-button"
+              aria-invalid={error ? true : undefined}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (error) setError(null);
+              }}
+              className={cn('rounded-button', error && 'border-error')}
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <p role="alert" className="text-error text-sm">
+              {error}
+            </p>
+          )}
 
           <Button type="submit" disabled={submitting} className="rounded-button w-full">
             {submitting ? 'Saving…' : 'Set password'}

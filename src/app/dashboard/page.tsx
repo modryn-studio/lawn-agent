@@ -56,7 +56,7 @@ function sublabel(
 
 export default async function DashboardPage() {
   const { data: session } = await auth.getSession();
-  if (!session?.user) redirect('/onboarding');
+  if (!session?.user) redirect('/signin?redirect=/dashboard');
 
   // Find property for this user
   const [property] = await sql`
