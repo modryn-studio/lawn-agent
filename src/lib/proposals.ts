@@ -5,6 +5,7 @@ import { sql } from '@/lib/db';
 import { env } from '@/lib/env';
 import { reverseGeocode } from '@/lib/geocode';
 import { createRouteLogger } from '@/lib/route-logger';
+import { ValidityConditionsSchema, type ValidityConditions } from '@/lib/proposal-validity';
 
 // ── Proposal output schema ────────────────────────────────────────────────────
 // Defines what claude-sonnet-4-6 must return. Stored verbatim in proposals.content.
@@ -50,6 +51,9 @@ export const proposalSchema = z.object({
     })
     .optional()
     .describe('Contextual sublabel copy for each displayed yard attribute'),
+  validity_conditions: ValidityConditionsSchema.optional().describe(
+    'Expiration conditions for this proposal. Populate when the proposal has a time-sensitive window (soil temp threshold, calendar cutoff, GDD). Omit for evergreen recommendations with no specific expiry.'
+  ),
 });
 
 export type ProposalContent = z.infer<typeof proposalSchema>;
@@ -218,7 +222,57 @@ Rules:
 - If soil_ph is locked and the primary recommendation is pH-sensitive, close the rationale with one sentence explaining why a soil test would sharpen this specific recommendation. Only when the connection is real. Never as a default closer.
 
 Attribute context:
-Write each attribute_context sublabel as a single sentence that is true for this zone and accurate for the current season. Use the LOCATION field if present for the soil_type sentence.`;
+Write each attribute_context sublabel as a single sentence that is true for this zone and accurate for the current season. Use the LOCATION field if present for the soil_type sentence.
+
+Validity conditions:
+Populate validity_conditions when the proposal has a time-sensitive window that will close. Omit it for evergreen recommendations with no specific expiry.
+
+Required structure:
+{
+  "conditions": [one or more condition objects],
+  "logic": "any"
+}
+
+Use "logic": "any" for nearly all proposals — the window expires when any condition is met. Use "logic": "all" only when the window is valid until every listed condition is met simultaneously.
+
+Condition type 1 — soil_temp_threshold:
+{
+  "type": "soil_temp_threshold",
+  "metric": "soil_temp_6cm",
+  "threshold": 55,
+  "direction": "above",
+  "expires_when": "crossed"
+}
+- metric: "soil_temp_0cm" (surface) or "soil_temp_6cm" (6cm depth — use for crabgrass germination and most applications)
+- threshold: temperature in °F
+- direction: "above" = expires when soil reaches or exceeds threshold; "below" = expires when soil drops to or below threshold
+- expires_when: always "crossed"
+
+Condition type 2 — calendar_date:
+{
+  "type": "calendar_date",
+  "expires_after": "2026-05-15"
+}
+- expires_after: ISO date string YYYY-MM-DD. Window closes on this date.
+- Use the current year. Set a date that matches the end of the treatment window for this zone and grass type.
+
+Example — pre-emergent weed control (expires when soil warms past germination threshold OR season ends):
+{
+  "conditions": [
+    {
+      "type": "soil_temp_threshold",
+      "metric": "soil_temp_6cm",
+      "threshold": 55,
+      "direction": "above",
+      "expires_when": "crossed"
+    },
+    {
+      "type": "calendar_date",
+      "expires_after": "2026-05-15"
+    }
+  ],
+  "logic": "any"
+}`;
 
 // Accept an optional pre-computed date string so callers can log the exact value
 // that gets injected into the prompt — prevents a theoretical mismatch if the
@@ -232,6 +286,30 @@ export function buildSystemPrompt(date?: string): string {
       year: 'numeric',
     });
   return SYSTEM_PROMPT.replace('{CURRENT_DATE}', currentDate);
+}
+
+// ── Validity conditions helper ────────────────────────────────────────────────
+// Validates raw JSONB from Claude before INSERT. Returns null on failure.
+//
+// Called from generateAndSaveProposalForProperty when Claude begins populating
+// validity_conditions (Day 3 — system prompt change). Until then this function
+// exists so the wiring point is obvious and typed.
+//
+// On failure: caller inserts without validity_conditions; evaluator treats null
+// as always-valid. That's graceful degradation, not a silent failure.
+export function parseValidityConditions(raw: unknown): ValidityConditions | null {
+  if (raw == null) return null;
+  const result = ValidityConditionsSchema.safeParse(raw);
+  if (!result.success) {
+    // Intentionally console.warn — this runs inside generateAndSaveProposalForProperty
+    // which has its own route logger. The warn surfaces in dev.log without needing
+    // a reqId here. Thread through the route logger on Day 3 if more context is needed.
+    console.warn('[proposal-validity] parseValidityConditions: schema validation failed', {
+      error: result.error.message,
+    });
+    return null;
+  }
+  return result.data;
 }
 
 // ── Authenticated proposal generation ─────────────────────────────────────────
@@ -346,6 +424,10 @@ export async function generateAndSaveProposalForProperty(
     const inputCost = ((usage?.inputTokens ?? 0) / 1_000_000) * 3;
     const outputCost = ((usage?.outputTokens ?? 0) / 1_000_000) * 15;
 
+    const validatedConditions = parseValidityConditions(
+      proposalContent.validity_conditions ?? null
+    );
+
     log.info(ctx.reqId, 'Proposal generated', {
       title: proposalContent.title,
       category: proposalContent.category,
@@ -357,12 +439,19 @@ export async function generateAndSaveProposalForProperty(
         output: usage?.outputTokens,
       },
       costUsd: (inputCost + outputCost).toFixed(6),
+      hasValidityConditions: validatedConditions !== null,
     });
 
     const [proposal] = await sql`
-      INSERT INTO proposals (property_id, status, title, content)
-      VALUES (${propertyId}, 'pending', ${proposalContent.title}, ${JSON.stringify(proposalContent)})
-      RETURNING id, property_id, status, title, content, created_at
+      INSERT INTO proposals (property_id, status, title, content, validity_conditions)
+      VALUES (
+        ${propertyId},
+        'pending',
+        ${proposalContent.title},
+        ${JSON.stringify(proposalContent)},
+        ${validatedConditions !== null ? JSON.stringify(validatedConditions) : null}
+      )
+      RETURNING id, property_id, status, title, content, validity_conditions, created_at
     `;
 
     log.info(ctx.reqId, 'Proposal saved', {

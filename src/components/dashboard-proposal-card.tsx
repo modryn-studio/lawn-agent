@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import type { ProposalContent } from '@/lib/proposals';
+import type { ValidityState } from '@/lib/proposal-validity';
 
 const CATEGORY_LABELS: Record<ProposalContent['category'], string> = {
   fertilization: 'Fertilizer applied.',
@@ -21,12 +23,39 @@ interface Props {
   proposalId: string;
   propertyId: string;
   zone: string | null;
+  validityState: ValidityState;
+  // UTC timestamp from Neon. Null for pre-instrumentation proposals or if the
+  // stamp write hasn't completed yet (should not happen — synchronous in page.tsx).
+  lastEvaluatedAt: string | null;
 }
 
-type CardStatus = 'active' | 'confirming' | 'loading' | 'confirmed';
+function formatDate(ts: string): string {
+  return new Date(ts).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+}
 
-export function DashboardProposalCard({ proposal, proposalId, propertyId, zone }: Props) {
-  const [status, setStatus] = useState<CardStatus>('active');
+type CardStatus = 'active' | 'confirming' | 'loading' | 'confirmed' | 'expired';
+
+export function DashboardProposalCard({
+  proposal,
+  proposalId,
+  propertyId,
+  zone,
+  validityState,
+  lastEvaluatedAt,
+}: Props) {
+  const router = useRouter();
+  const [status, setStatus] = useState<CardStatus>(() =>
+    validityState === 'expired' ? 'expired' : 'active'
+  );
+
+  // Auto-refresh 3s after confirming a proposal. Gives the after() background
+  // job a beat to start generation before we ask for fresh data.
+  useEffect(() => {
+    if (status === 'confirmed') {
+      const timer = setTimeout(() => router.refresh(), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [status, router]);
 
   function handleConfirmPrompt() {
     if (status !== 'active') return;
@@ -46,13 +75,24 @@ export function DashboardProposalCard({ proposal, proposalId, propertyId, zone }
     }
   }
 
+  if (status === 'expired') {
+    return (
+      <div className="border-border rounded-lg border bg-white p-5 text-center sm:p-8">
+        <p className="text-muted text-[15px] leading-relaxed">
+          Window closed{lastEvaluatedAt ? ` ${formatDate(lastEvaluatedAt)}` : ''}.
+        </p>
+        <p className="text-muted mt-1 text-[15px]">Your agent is watching.</p>
+      </div>
+    );
+  }
+
   if (status === 'confirmed') {
     return (
-      <div className="border-border rounded-lg border bg-white p-5 sm:p-8">
-        <p className="text-text text-base leading-snug font-medium">
+      <div className="border-border rounded-lg border bg-white p-5 text-center sm:p-8">
+        <p className="text-muted text-[15px] leading-relaxed">
           {CATEGORY_LABELS[proposal.category]}
         </p>
-        <p className="text-muted mt-2 text-[15px]">Your agent is watching.</p>
+        <p className="text-muted mt-1 text-[15px]">Your agent is watching.</p>
       </div>
     );
   }
@@ -65,6 +105,11 @@ export function DashboardProposalCard({ proposal, proposalId, propertyId, zone }
       )}
       <p className="text-text mt-3 text-[15px] leading-relaxed">{proposal.summary}</p>
       <p className="text-muted mt-2 text-sm">{proposal.timing}</p>
+      {validityState === 'expiring_soon' && (
+        <p className="text-secondary border-secondary mt-2 border-l-2 pl-3 text-sm">
+          Act this week — the window is closing.
+        </p>
+      )}
       {proposal.product_suggestion && (
         <a
           href={`https://www.amazon.com/s?k=${encodeURIComponent(proposal.product_suggestion)}`}

@@ -67,7 +67,7 @@ Landing page → email capture (early access) → onboarding (address input) →
 - `/api/onboarding/proposal` — Unauthenticated. Zip → zone lookup (phzmapi.org) → attribute inference + weather fetch (Open-Meteo, parallel) → Claude proposal with weather context injected.
 - `/api/onboarding/complete` — Authenticated. Writes property + yard_properties + proposals rows.
 - `/api/onboarding/telemetry` — Unauthenticated PATCH. Captures approve/pass outcome on an anonymous `proposal_telemetry` row. `AND outcome IS NULL` guard prevents overwriting on retry.
-- `/dashboard` — Main view after onboarding. Proposal feed, active recommendations, yard summary.
+- `/dashboard` — Main view after onboarding. Proposal feed, active recommendations, yard summary. Evaluates proposal validity on each load (soil temp threshold + calendar date) via `src/lib/proposal-validity.ts`. Card renders valid / expiring-soon / expired states. Expired proposals stamp `last_evaluated_at` synchronously on first detection.
 - `/profile` — Yard details. Assumption corrections, treatment log, confidence labels per attribute.
 - `/proposal/[id]` — Individual proposal. Full detail, approve/pass, deep link to pre-filled cart, completion confirmation.
 - `/privacy` — Privacy policy.

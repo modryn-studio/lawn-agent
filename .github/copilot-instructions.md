@@ -49,7 +49,7 @@ basePath:
 - `/signin` → Returning user sign-in. Server-side guard redirects already-onboarded users to `/dashboard`. Renders `<SigninScreen />`. Links to `/forgot-password` and `/onboarding`.
 - `/forgot-password` → Password reset request. Email input → `authClient.requestPasswordReset()` → sends email via Neon shared mail server (`auth@mail.myneon.app`). `redirectTo` points to `/reset-password`.
 - `/reset-password` → Password reset completion. Reads `?token=` from URL. Calls `authClient.resetPassword({ newPassword, token })`. Invalid/missing token shows an error state.
-- `/dashboard` → Proposal feed, active recommendations, yard summary.
+- `/dashboard` → Proposal feed, active recommendations, yard summary. Evaluates proposal validity on each load (soil temp threshold + calendar date) via `src/lib/proposal-validity.ts`. Card renders valid / expiring-soon / expired states. Expired proposals stamp `last_evaluated_at` synchronously on first detection.
 - `/profile` → Yard details, assumption corrections, treatment log, confidence labels.
 - `/proposal/[id]` → Individual proposal detail, approve/pass, commerce deep link, completion confirmation.
 - `/api/auth/[...path]` → Auth proxy. Forwards all auth requests to Neon Auth server via `auth.handler()`. Wraps each method with `withCanonicalOrigin()` to normalize the `Origin` header before proxying — required workaround for Node.js 22 undici bug. Do not simplify this back to a plain re-export.

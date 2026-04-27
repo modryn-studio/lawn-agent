@@ -6,6 +6,7 @@ import { sql } from '@/lib/db';
 import { env } from '@/lib/env';
 import { site } from '@/config/site';
 import { z } from 'zod';
+import { parseValidityConditions } from '@/lib/proposals';
 
 function escapeHtml(str: string): string {
   return str
@@ -52,6 +53,9 @@ const bodySchema = z.object({
         soil_type: z.string().optional(),
       })
       .optional(),
+    // Claude outputs validity_conditions as part of proposalSchema.
+    // Accept as unknown here — parseValidityConditions validates the shape before INSERT.
+    validity_conditions: z.unknown().optional(),
   }),
   attributes: z.array(attributeSchema),
 });
@@ -140,9 +144,16 @@ export async function POST(req: Request): Promise<Response> {
     });
 
     // 3. Insert proposal
+    const validatedConditions = parseValidityConditions(proposal.validity_conditions ?? null);
     const [proposalRow] = await sql`
-      INSERT INTO proposals (property_id, status, title, content)
-      VALUES (${propertyId}, 'pending', ${proposal.title}, ${JSON.stringify(proposal)})
+      INSERT INTO proposals (property_id, status, title, content, validity_conditions)
+      VALUES (
+        ${propertyId},
+        'pending',
+        ${proposal.title},
+        ${JSON.stringify(proposal)},
+        ${validatedConditions !== null ? JSON.stringify(validatedConditions) : null}
+      )
       RETURNING id
     `;
 

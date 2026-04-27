@@ -1,6 +1,6 @@
 # Lawn Agent — Guide
 
-_Updated April 24, 2026._
+_Updated April 26, 2026._
 
 ---
 
@@ -46,7 +46,11 @@ Sign-in and full password reset are live.
 After onboarding, authenticated users land on `/dashboard`. Shows:
 
 - Current proposal (zone label, title, summary, timing, product suggestion as Amazon search link)
-- "I did this" button — marks the proposal `done`, logs a `complete` interaction, flips card to confirmation state. The next proposal is auto-generated in the background. Refresh to see it.
+- Proposal validity state — evaluated on every load against live soil temp and calendar date:
+  - **Valid** — normal card, no indicator
+  - **Expiring soon** — amber "Act this week" line below the timing copy
+  - **Expired** — card replaced with "Window closed [date]. Your agent is watching." No action required; next proposal generates automatically
+- "I did this" button — marks the proposal `done`, logs a `complete` interaction, flips card to "[category] applied. Your agent is watching." Auto-refreshes after 3 seconds to show the next proposal.
 - Yard attributes (hardiness zone, grass type, soil type) with contextual sublabels — Claude writes a one-sentence sublabel per attribute tailored to the specific zone and season. Falls back to static confidence labels if not available.
 
 ---
@@ -79,6 +83,7 @@ Individual proposal pages, profile corrections, subscription billing. Password r
 | `/api/proposals/[id]/complete`                 | ✅ Built               |
 | Dashboard (proposal + yard profile)            | ✅ Built               |
 | Proposal completion loop ("I did this")        | ✅ Built               |
+| Proposal validity layer (soil temp / date)     | ✅ Built               |
 | Commerce link (Amazon search)                  | ✅ Built               |
 | Feedback widget                                | ⏳ Built, not wired    |
 | Password reset from own domain                 | ⏳ Planned (issue #11) |
